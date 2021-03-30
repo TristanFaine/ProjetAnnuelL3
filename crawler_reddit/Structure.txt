@@ -1,0 +1,5 @@
+QueryCrawler donne:
+{id : { subreddit, titre, mot}
+
+CommentCrawler donne:
+{comment_id {post_id, corps, mot}
