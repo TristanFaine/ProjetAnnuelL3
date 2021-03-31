@@ -84,7 +84,7 @@ client.once('ready', () => {
       await getMessages(query, 1000).then(out => convertJSON(out));
     }
     var json = JSON.stringify(scrapped_data);
-    fs.writeFile('myjsonfile.json', json, 'utf8', function (err) {
+    fs.writeFile('discord_data.json', json, 'utf8', function (err) {
       if (err) return console.log(err);
       console.log("Fin du scrapping, vous pouvez quitter ce programme en faisant CTRL+C")
     });
