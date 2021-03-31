@@ -17,7 +17,7 @@ mots = [x.strip() for x in lines[1].split(",")]
 
 for mot in mots:
     scrapper = reddit.subreddit(subreddit)
-    for post in scrapper.search('title:' + mot, limit=10):
+    for post in scrapper.search('title:' + mot, limit=20):
         post_dict = {}
         post_dict['post_id'] = post.id
         print("Recherche de Mot-cle:", mot, ":", post.title)

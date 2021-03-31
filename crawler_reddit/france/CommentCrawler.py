@@ -28,7 +28,7 @@ for post in data:
     for comment in submission.comments.list():
         submission_dict = {}
         #submission_dict['comment_id'] = comment.id
-        submission_dict['body'] = comment.body
+        submission_dict['text'] = comment.body
         #submission_dict['reference'] = post['reference']
         
         #submission_dict['post_id'] = post['post_id']
