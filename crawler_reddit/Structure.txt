@@ -1,5 +1,9 @@
 QueryCrawler donne:
-{id : { subreddit, titre, mot}
+[{post_id, subreddit, titre, reference),.. ]
 
 CommentCrawler donne:
-{comment_id {post_id, corps, mot}
+[{comment_id, corps, reference, post_id, subreddit},... ]
+
+
+
+for comment in submission.comments.list():
