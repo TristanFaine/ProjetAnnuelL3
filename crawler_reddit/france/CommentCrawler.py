@@ -5,9 +5,6 @@ import json
 #Celui-ci pourra etre converti en objet json ou autre, a des fins diverses tel une composition de corpus.
 
 
-
-#Notes personelles: faire une meilleure structure de donneees.
-
 #Authentification sur reddit, veuillez ne pas abuser du scrapper.
 reddit = praw.Reddit(client_id='ScN-UpZfhge5Gg', client_secret='qHpUqtbrlboH1iEla69J9PuFGZZZqA', user_agent='ScrapperFR')
 
@@ -40,8 +37,6 @@ for post in data:
         #submission_dict[comment.id]['time'] = comment.created_utc
         submission_dict_list.append(submission_dict)
 
-
-#print(submission_dict)
 
 with open("Reddit_Comment.json","w") as f:
     json.dump(submission_dict_list,f)

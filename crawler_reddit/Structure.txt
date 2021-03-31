@@ -3,7 +3,3 @@ QueryCrawler donne:
 
 CommentCrawler donne:
 [{comment_id, corps, reference, post_id, subreddit},... ]
-
-
-
-for comment in submission.comments.list():
