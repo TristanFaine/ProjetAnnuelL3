@@ -27,12 +27,12 @@ for post in data:
     #Recherche en largeur des commentaires, on en extrait le corps.
     for comment in submission.comments.list():
         submission_dict = {}
-        submission_dict['comment_id'] = comment.id
+        #submission_dict['comment_id'] = comment.id
         submission_dict['body'] = comment.body
-        submission_dict['reference'] = post['reference']
+        #submission_dict['reference'] = post['reference']
         
-        submission_dict['post_id'] = post['post_id']
-        submission_dict['subreddit'] = post['subreddit']
+        #submission_dict['post_id'] = post['post_id']
+        #submission_dict['subreddit'] = post['subreddit']
         #submission_dict[comment.id]['depth'] = comment.depth
         #submission_dict[comment.id]['time'] = comment.created_utc
         submission_dict_list.append(submission_dict)
