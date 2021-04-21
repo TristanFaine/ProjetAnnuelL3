@@ -10,6 +10,6 @@ Il serait préférable d'utiliser votre propre bot, vous pouvez sélectionner un
 
 Instructions:
 
--   Dans le dossier contenant index.js :"npm install discord" pour utiliser le module discord.js
+-   Dans le dossier contenant index.js :"npm install discord.js" pour utiliser le module discord.js, et initialiser le dossier node_modules
 
 -   Faites ensuite la commande node fetch.js pour utiliser le robot.
