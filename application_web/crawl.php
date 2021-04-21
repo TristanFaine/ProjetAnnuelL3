@@ -7,7 +7,7 @@
 //Formation du chemin pour appeler le script correspondant.
 switch (strtolower($_GET['source'])) {
 	case "reddit":
-		$path = realpath("src/crawlers/test/test.py");
+		$path = realpath("src/crawlers/crawler_reddit/france/QueryCrawler.py");
 		break;
 	case "discord":
 		$path = realpath("src/crawlers/crawler_discord/fetch.js");
@@ -20,30 +20,68 @@ switch (strtolower($_GET['source'])) {
 		break;
 }
 
+//Sauveur de vie en dessous:
 //https://stackoverflow.com/questions/34957283/how-to-properly-call-python-3-script-from-php
 
 
 //Appel du code correspondant.. on va trouver un moyen de faire autre chose que exec plus tard.
 $args = array($_GET['source'], $_GET['limit'], $_GET['aux']);
 
-//list of things https://stackoverflow.com/questions/34957283/how-to-properly-call-python-3-script-from-php
-
-echo $path . " " . escapeshellarg(json_encode($args));
-
+echo "DEBUG APPEL : " . $path . " " . escapeshellarg(json_encode($args));
 //2>&1 pour afficher stderr dans stdout. pratique.
+
+//Donne un enorme string qui est du JSON (normalement):
 $result = shell_exec($path . " " . escapeshellarg(json_encode($args)) . " 2>&1");
 echo "<br/>";
 echo "<br/>";
-echo "<br/>";
 
-$resultData = json_decode($result, true);
+//Convertit la chaine encodee JSON en une variable PHP... peut-etre pas necessaire de faire cette etape
+#$resultData = json_decode($result, true);
 
 var_dump($result);
 echo "<br/>";echo "<br/>";echo "<br/>";echo "<br/>";
-var_dump($resultData);
+#var_dump($resultData);
 
 //Cela semble fonctionner, maintenant il faut verifier que les VRAIS scripts fonctionnent.
 
+
+//Vu que nos sorties json sont a etage unique (pas un vrai terme mais bon)
+//on peut simplement faire une boucle for values X[0] puis X[1] puis X[2] etc..
+
+
+//Pour mettre du json dans postgres:
+//faire une colonne json et un truc du genre:
+// INSERT INTO orders (infojson)
+// VALUES('{ "customer": "Lily Bush", "items": {"product": "Diaper","qty": 24}}'),
+//       ('{ "customer": "Josh William", "items": {"product": "Toy Car","qty": 1}}'),
+//       ('{ "customer": "Mary Clark", "items": {"product": "Toy Train","qty": 2}}');
+
+//Pour recup du JSON:
+//SELECT infojson FROM orders;
+
+//Un peu plus complique:
+//SELECT info ->> 'customer' AS customer
+//FROM orders
+//WHERE info -> 'items' ->> 'product' = 'Diaper';
+
+//-> est un operateur par cle, ->> est un operateur par text.
+
+
+//Encore un peu plus complique:
+//SELECT info ->> 'customer' AS customer,
+//	info -> 'items' ->> 'product' AS product
+//FROM orders
+//WHERE CAST ( info -> 'items' ->> 'qty' AS INTEGER) = 2
+
+//On peu utiliser les fonctions d'agregat et autre, de facon normal:
+//SELECT 
+//   MIN (CAST (info -> 'items' ->> 'qty' AS INTEGER)),
+//   MAX (CAST (info -> 'items' ->> 'qty' AS INTEGER)),
+//   SUM (CAST (info -> 'items' ->> 'qty' AS INTEGER)),
+//   AVG (CAST (info -> 'items' ->> 'qty' AS INTEGER))
+//FROM orders;
+
+//D'autres fonctions existent tel json_each, json_object_keys, json_typeof, etc..
 
 
 ?>
@@ -70,6 +108,7 @@ var_dump($resultData);
 	echo "shell_exec(" . $path . " " . escapeshellarg(json_encode($args)) . " 2>&1)";
 	?>
 	</p>
+	<p> mettre un truc de progression si c'est possible? </p>
 	</div>
 
 </body>

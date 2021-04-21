@@ -33,6 +33,7 @@
         <option value="Reddit">Reddit</option>
         <option value="Discord">Discord</option>
         <option value="Quora">Quora</option>
+        <option value="Test">Test</option>
     </select> 
     <br/>
     <label for="limit">Limite de pages/commentaires/autre : (0 = pas de limite)</label>

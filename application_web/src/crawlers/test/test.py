@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys, json, os
 try:
-    data = json.loads(sys.argv[1])
+    datum = json.loads(sys.argv[1])
 except:
     print("ERROR")
     sys.exit(1)
@@ -17,6 +17,5 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 with open(dir_path+'/Test_data.json') as f:
     data = json.load(f)
-
 print(json.dumps(data))
 
