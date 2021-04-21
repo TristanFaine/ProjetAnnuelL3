@@ -1,0 +1,8 @@
+QueryCrawler retourne ce format de données:
+[{post_id, subreddit, title, reference),.. ]
+
+CommentCrawler retourne ce format de données:
+[{comment_id, body, reference, post_id, subreddit},... ]
+
+Cependant, dans le cadre de la démonstration, CommentCrawler retournera ce format:
+[{text:""},...]

@@ -13,3 +13,7 @@ Instructions:
 -   Dans le dossier contenant index.js :"npm install discord.js" pour utiliser le module discord.js, et initialiser le dossier node_modules
 
 -   Faites ensuite la commande node fetch.js pour utiliser le robot.
+
+
+Notes en cours de projet :
+- Forcer l'arret de node quand le scrapping est termine.

@@ -10,3 +10,5 @@
 ## 7. Permettre l'utilisation de ce manager via PHP (soit utiliser shell_exec... ne semble pas etre une bonne idee, soit faire un appel js asynchrone?)
 
 ## 8. Verifier que tout fonctionne..
+
+## 9. Utiliser discord.py pour le crawling de discord, vu que la plupart de nos scripts sont en python?
