@@ -1,0 +1,12 @@
+Il n'y a rien ici pour l'instant, mais la page PHP devrait permettre de faire au moins deux choses:
+
+1. Utiliser le manager de crawlers pour envoyer des donnees (format JSON) a la base de donnees Postgres.
+
+
+2. Interroger la base de donnees pour permettre de recuperer les resultats du crawling et mettre cela... quelque part.
+
+On pourrait permettre cela avec des listes de choix qui se convertissent en argument pour le manager:
+Arg 1 : Source = Discord/Reddit/Web1/Web2/Autre
+Arg 2 : Limite de posts/commentaires = inserer un nombre ou laisser a 0 pour illimite.
+Arg 3: precision de destination, par exemple France/artiste ou discord_serveur/discord_channel.
+Peut-etre ne pas prendre en compte l'arg 3 car trop complique, et juste faire un crawl de tout.
