@@ -1,18 +1,27 @@
 <?php
 //Cette premiere version de l'application permet de choisir entre 2 options:
-//1. un formulaire (faire joli plus tard) pour appeler le script de crawling correspondant.
-//2. Un autre formulaire pour faire une requete vers la BDD Postgres.
+//1. Un formulaire pour appeler le script de crawling correspondant, et envoyer les donnees vers la BDD postgres
+//2. Un autre formulaire pour faire une requete de dump de la BDD Postgres.
+//Une ebauche d'architecture MVC est en cours de developpement.
 
-    //set_include_path('./src');
-    //require_once('Router.php');
+//Mise en place d'une architecture MVC:
+    require('dump/postgresql_config.php');
+    //^mettre le vrai chemin ../../private
 
-    //$db = "none yet";
-    //$router = new Router();
+    set_include_path('./src');
 
-//On essayera de faire mieux que juste des GET pour faire notre application..
+    require_once('Router.php');
+    //require_once('model/TextStoragePostgreSQL');
+    $dsn = 'mysql:host='.$POSTGRESQL_HOST.';port=.'.$POSTGRESQL_PORT.';dbname='.$POSTGRESQL_DB.';charset=utf8mb4';
+    //$db = new PDO($dsn, $POSTGRESQL_USER, $POSTGRESQL_PASSWORD);
+    
+    
+    
+    $router = new Router();
+    //$textStorage = new TextStorageMySQL($db);
 
-//ignorons l'aspect application et regardons si la logique d'appel de scripts fonctionne.
-
+    //$router->main();
+//On essayera de faire mieux que juste des GET/POST pour faire notre application..
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -20,20 +29,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-	<title>La meilleure page web de l'univers</title>
+	<title>Acceuil: Application Crawler Incremental</title>
 	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
 </head>
 
 <body>
-	<h1>Page d'acceuil</h1>
+	<h1>Bienvenue sur le prototype de la page d'acceuil</h1>
     <h2>Formulaire d'envoi de donnees</h2>
-    <form action="crawl.php" method="get">
+    <form action="crawl.php" method="post">
     <label for="source">Selectionner une source de donnees :</label>
     <select id="source" name="source">
+        <option value="Test">Test</option>
         <option value="Reddit">Reddit</option>
         <option value="Discord">Discord</option>
         <option value="Quora">Quora</option>
-        <option value="Test">Test</option>
     </select> 
     <br/>
     <label for="limit">Limite de pages/commentaires/autre : (0 = pas de limite)</label>
@@ -48,13 +57,13 @@
 
     <h2>Formulaire de reception de donnees</h2>
     <form action="get.php" method="get">
-    <label for="other">Pas encore disponible, mais source (ne rien marquer si dump de toute la BDD) :</label>
+    <label for="other">Pas encore disponible, mais veuillez indiquer le type de source (Reddit,Discord... ne rien marquer si dump de toute la BDD) :</label>
     <input type="text" name="other"/>
     <br/>
     <input type="submit" value="Submit"/>
     </form>
 
-    <h3 id="pretty"> Bon dans la version non-prototype on utilisera un routeur.</h3>
+    <h3 id="pretty"> Bon dans la version non-prototype on utilisera un routeur/MVC.</h3>
 
 </body>
 

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title><?php echo $this->title;?></title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" media="screen" type="text/css" href="<?php echo dirname($this->router->getFileURL()); ?>/src/view/style/screen.css"/>
+</head>
+<body>
+    <nav>
+		<ul>
+			<?php
+				foreach($this->menu as $texte => $lien)
+				{
+					echo '<li><a href="'.$lien.'">'.$texte.'</a></li>';
+				}
+			?>
+		</ul>
+	</nav>
+    <?php echo $this->content;?>
+</body>
+</html>

@@ -1,14 +1,11 @@
 # ProjetAnnuelL3
 
-## 1.  localiser des sources de dialogues sur Internet
-## 2.  les récupérer, par des techniques plus ou moins automatiques (MechanicalSoup, Scrapy, Selenium)
-## 3.  les organiser au sein d'une base de données.
+## 1.  localiser des sources de dialogues sur Internet : Fait, mais peut toujours etre ameliore.
+## 2.  les récupérer, par des techniques plus ou moins automatiques (MechanicalSoup, Scrapy, Selenium) : Fait, mais peut toujours eter ameliore.
+## 3.  les organiser au sein d'une base de données. : La logique est mise en place : On utilisera des fichiers JSON pour permettre la communication de donnees.
 
-## 4. Unifier les resultats des crawlers/scrappers pour mise dans une BDD: Text=text, Source=Discord/Reddit/Autre.., Sub_Path=France/24388ugfj ou autre chose , Sub_Id = incrementation automatique (1..2..3..), Real_Id =Id donne par crawler ou API.
-## 5. Mettre en place un crawler incremental (ou manager de crawler) qui peut appeler un certain crawler, en precisant : le crawler a utiliser, la limite de posts/commentaires a crawl, et une liste d'arguments alternatifs (par exemple, Specifier le Subreddit voulu, ou le serveur discord ET une chaine specifique, ou autre chose)
+## 4. Unifier les resultats des crawlers/scrappers pour mise dans une BDD: GlobalId + Un objet JSON contenant : Text, Source, Path, Path_Id, Real_Id
+## 5. Mettre en place un manager de crawler (Un Script PHP s'en occupe.)
 ## 6. Mettre en place la BDD.
-## 7. Permettre l'utilisation de ce manager via PHP (soit utiliser shell_exec... ne semble pas etre une bonne idee, soit faire un appel js asynchrone?)
-
-## 8. Verifier que tout fonctionne..
-
-## 9. Utiliser discord.py pour le crawling de discord, vu que la plupart de nos scripts sont en python?
+## 7. Verifier que tout fonctionne a distance..
+## 8. Ameliorer l'architecture de la page PHP, ajouter de nouveaux crawlers, etc.

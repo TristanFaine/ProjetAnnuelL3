@@ -3,9 +3,12 @@
 //Puis appelle le script correspondant, avec certains parametres
 //PENSER A BIEN FAIRE EN SORTE QU'ON NE PEUT PAS INJECTER DE CODE MALVEILLANT.
 
+//Separer plus tard la page en une page de verification et une page d'execution, je suppose.
+
+//responses to get must be cached, responses to post must not
 
 //Formation du chemin pour appeler le script correspondant.
-switch (strtolower($_GET['source'])) {
+switch (strtolower($_POST['source'])) {
 	case "reddit":
 		$path = realpath("src/crawlers/crawler_reddit/france/QueryCrawler.py");
 		break;
@@ -18,6 +21,11 @@ switch (strtolower($_GET['source'])) {
 	case "test":
 		$path = realpath("src/crawlers/test/test.py");
 		break;
+	default:
+	//On essaye de faire une demande invalide, donc afficher une page d'erreur
+	//Do: Route to error page
+		$path = realpath("src/crawlers/test/test.py");
+		break;
 }
 
 //Sauveur de vie en dessous:
@@ -25,7 +33,7 @@ switch (strtolower($_GET['source'])) {
 
 
 //Appel du code correspondant.. on va trouver un moyen de faire autre chose que exec plus tard.
-$args = array($_GET['source'], $_GET['limit'], $_GET['aux']);
+$args = array($_POST['source'], $_POST['limit'], $_POST['aux']);
 
 echo "DEBUG APPEL : " . $path . " " . escapeshellarg(json_encode($args));
 //2>&1 pour afficher stderr dans stdout. pratique.
@@ -73,7 +81,7 @@ echo "<br/>";echo "<br/>";echo "<br/>";echo "<br/>";
 //FROM orders
 //WHERE CAST ( info -> 'items' ->> 'qty' AS INTEGER) = 2
 
-//On peu utiliser les fonctions d'agregat et autre, de facon normal:
+//On peut utiliser les fonctions d'agregat et autre, de facon normal:
 //SELECT 
 //   MIN (CAST (info -> 'items' ->> 'qty' AS INTEGER)),
 //   MAX (CAST (info -> 'items' ->> 'qty' AS INTEGER)),
@@ -98,9 +106,9 @@ echo "<br/>";echo "<br/>";echo "<br/>";echo "<br/>";
     <h3>Debug infos demande</h2>
     
 	<div id="debug"> 
-	<p> source = <?php echo $_GET['source'];?> </p>
-	<p> limit = <?php echo $_GET['limit'];?> </p>
-	<p> aux = <?php echo $_GET['aux'];?> </p>
+	<p> source = <?php echo $_POST['source'];?> </p>
+	<p> limit = <?php echo $_POST['limit'];?> </p>
+	<p> aux = <?php echo $_POST['aux'];?> </p>
 	</div>
     
 	<div id="stuff">
