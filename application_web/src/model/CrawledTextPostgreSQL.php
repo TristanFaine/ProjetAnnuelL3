@@ -32,6 +32,11 @@
             return $this->createObj($obj);
         }
 
+        public function createBatch(&$jsonData){
+            //TODO: implement insertion loop based on known JSON format.
+            return $this->createObj($obj);
+        }
+
         public function update(CrawledText &$crawledText, $id) : bool{
             return parent::updateObj($crawledText, $id);
         }

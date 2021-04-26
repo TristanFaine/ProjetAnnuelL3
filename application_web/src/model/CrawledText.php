@@ -1,8 +1,10 @@
 <?php
-
+    //TODO: Put correct attributes when we are sure.
     class CrawledText
     {
         private $globalId;
+        private $taskId;
+        //following attributes can be put in a JSON format
         private $text;     // Value of text.
         private $source;   // Name of text's origin : service or website.
         private $path;     // "path" used to access the text's container (A page, a channel, etc..).

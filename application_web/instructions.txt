@@ -1,12 +1,12 @@
-Il n'y a rien ici pour l'instant, mais la page PHP devrait permettre de faire au moins deux choses:
+Cette application Web PHP est une "telecommande" permettant d'interroger une base de donnees a distance, et d'appeler des crawlers depuis l'ordinateur de l'utilisateur pour pouvoir extraire des donnees.
+Pour cela, elle utilise une API hebergee sur les serveurs de l'universite de Caen.
+Vous pouvez utiliser le serveur web interne de PHP pour utiliser cette application: php -S 127.0.0.1:8000
 
-1. Utiliser le manager de crawlers pour envoyer des donnees (format JSON) a la base de donnees Postgres.
+Les 2 actions possibles sont celles-ci:
+Selectionner un crawler -> Choisir une tache (ou plusieurs) -> Effectuer cette tache en local, en permettant de pauser celle-ci si necessaire -> Envoyer les resultats JSON vers une base de donnees.
+
+Ou : Selectionner une source de donnees -> Recuperer les donnees depuis la base de donnees.
 
 
-2. Interroger la base de donnees pour permettre de recuperer les resultats du crawling et mettre cela... quelque part.
 
-On pourrait permettre cela avec des listes de choix qui se convertissent en argument pour le manager:
-Arg 1 : Source = Discord/Reddit/Web1/Web2/Autre
-Arg 2 : Limite de posts/commentaires = inserer un nombre ou laisser a 0 pour illimite.
-Arg 3: precision de destination, par exemple France/artiste ou discord_serveur/discord_channel.
-Peut-etre ne pas prendre en compte l'arg 3 car trop complique, et juste faire un crawl de tout.
+
