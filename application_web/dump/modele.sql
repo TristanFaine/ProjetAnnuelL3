@@ -1,1 +1,0 @@
-CREATE TABLE 'crawledtext' ('id_global' INT(100) AUTO_INCREMENT, 'info' json, PRIMARY KEY (idGlobal))

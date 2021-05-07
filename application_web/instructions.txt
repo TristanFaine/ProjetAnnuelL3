@@ -10,3 +10,12 @@ Ou : Selectionner une source de donnees -> Recuperer les donnees depuis la base 
 
 
 
+Je pense que je m'embrouille dans la logique d'appel de crawler.
+
+On a -> demande un crawler -> recuperation des taches associees -> execution des taches.
+Il faudrait enlever l'etape superflue (pour l'instant) de selection des taches. car cela fait refaire un appel a l'API...
+
+Le probleme de communication entre appli PHP et scripts python/js/autres peut peut-etre se regler avec un socket/websocket, utiliser ajax ou autre..
+Pour que ces scripts puissent communiquer a l'appli web, faudrait qu'ils soient sur le meme "serveur"....
+
+...Utiliser des mini-frameworks sur chaque crawler 

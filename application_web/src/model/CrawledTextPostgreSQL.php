@@ -8,7 +8,7 @@
     //or to split data into 5 columns (doable since it's a json with only one depth level)
 
 
-    class CrawledTextStorageMySQL extends AbstractDataBaseStorage implements CrawledTextStorage{
+    class CrawledTextMySQL extends AbstractDataBaseStorage implements CrawledTextStorage{
 
         public function __construct(PDO &$db){
             parent::__construct($db, 'crawledtext', 'globalid');
@@ -43,7 +43,7 @@
 
         protected function getValuesToInsert(&$obj) : array{
             if($obj === NULL){
-                $obj = new CrawledText('', 0.0, '', '', '', '', '');
+                $obj = new CrawledText(9838949849, '', '', '', 3493480380, '', '');
             }
             return $obj->toArray();
         }

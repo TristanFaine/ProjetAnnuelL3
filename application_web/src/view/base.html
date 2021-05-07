@@ -16,6 +16,11 @@
 			?>
 		</ul>
 	</nav>
+	<?php 
+        if($this->feedback!=='' && $this->feedback!==null){
+            echo '<div id="feedback">'.$this->feedback.'</div>';
+        }
+    ?>
     <?php echo $this->content;?>
 </body>
 </html>

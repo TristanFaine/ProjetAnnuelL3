@@ -35,7 +35,7 @@
 
         protected function getValuesToInsert(&$obj) : array{
             if($obj === NULL){
-                $obj = new Crawler(999999, 'undefined');
+                $obj = new Crawler(999999, 'undefined', 'undefined');
             }
             return $obj->toArray();
         }

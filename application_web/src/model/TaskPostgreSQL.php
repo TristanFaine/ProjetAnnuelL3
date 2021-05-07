@@ -6,13 +6,13 @@
 
 
 
-    class TaskStorageMySQL extends AbstractDataBaseStorage implements TaskStorage{
+    class TaskPostgreSQL extends AbstractDataBaseStorage implements TaskStorage{
 
         private $readAll;
 
         public function __construct(PDO &$db){
             parent::__construct($db, 'task');
-            $this->readAll = $db->prepare('SELECT * FROM task WHERE '.Task::CRAWLERID_REF.'=:id ORDER BY '.Task::CREATIONDATE_REF);
+            $this->readAll = $db->prepare('SELECT * FROM tache WHERE '.Task::CRAWLERID_REF.'=:id ORDER BY '.Task::BEGINDATE_REF);
         }
 
 

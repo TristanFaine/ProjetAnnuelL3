@@ -12,7 +12,6 @@
 
     require_once('view/View.php');
     require_once('controller/Controller.php');
-    require_once('model/CrawledTextStorage.php');
 
     class Router{
         const HOME = 'home';
@@ -26,7 +25,7 @@
 
         //Mettre l'argument de BDD plus tard
         //CrawledTextStorage &$crawledtextStorage, TaskStorage &$taskStorage, AccountStorage &$accountStorage
-        public function main(){
+        public function main(CrawlerStorage &$crawlerStorage, TaskStorage &$taskStorage){
             if(session_status() == PHP_SESSION_NONE){
                 session_name('crawlerAppSession');
                 session_start();
@@ -38,7 +37,7 @@
             $view = new View($this,$feedback);
             
             //mettre argument de BDD plus tard
-            $controller = new Controller($this, $view);
+            $controller = new Controller($this, $view, $crawlerStorage, $taskStorage);
             
             if(!key_exists('PATH_INFO', $_SERVER)){
                 $_SERVER['PATH_INFO'] = '';
@@ -51,19 +50,15 @@
             $arg1 = ($length >= 2 && $path_infos[1] !== '') ? $path_infos[1] : Router::HOME;
             
             switch($arg1){
+                case "TEST":
+                    //Test every time i want to do a thing, then try to integrate later..
+                    $controller->doTest();
+                    break;
                 case Router::HOME:
                     $controller->showHome();
                     break;
                 case Router::CRAWLER_LIST:
                     $controller->showCrawlers();
-                    break;
-                case Router::INSERT:
-                    //demande OU execution
-                    if($_SERVER['REQUEST_METHOD'] === 'GET'){
-                        $controller->showInsertPage();
-                    } else if($_SERVER['REQUEST_METHOD'] === 'POST'){
-                        $controller->callCrawler($_POST);
-                    }
                     break;
                 case Router::IMPORT:
                     $controller->showSources();
@@ -73,16 +68,39 @@
                     break;
                 default:
                 //Utiliser length pour afficher des cas specialises:
-                //par exemple, quand on a index.php/crawlerid=4/taskid=3/action=execute ou resume ou autre
-
-                $controller->show404();
+                //par exemple, quand on a index.php/crawlerid=4/taskid=3/action=execute ou autre
+                    $action = ($length >= 3) ? $path_infos[2] : '';
+                    switch($action){
+                        case Router::TASK_LIST:
+                            if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                                $controller->showTasks($arg1);
+                            }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                                $controller->doTasks($_POST['taskIdArray'], $arg1);
+                            }
+                            break;
+                        case Router::INSERT:
+                            if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                                //This shouldn't be possible so redirect to home
+                                $controller->showHome();
+                            }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                                //Post should be collected json data from crawlers
+                                $controller->doTasks($_POST, $arg1);
+                            }
+                                break;
+                        default:
+                         $controller->show404();
+                            break;
+                    }
+                
             }
             $view->render();
 
         }
 
-        //Fonctions aidant a la navigation/redirection de l'application web
 
+
+
+        //Fonctions aidant a la navigation/redirection de l'application web
 
         //URL de base:
         public function getFileURL() : string
@@ -95,7 +113,6 @@
             return $this->getFileURL().Router::PATH_DELIMITER.Router::HOME;
         }
 
-        //URL associes aux actions des crawlers:
         public function getCrawlerListURL(): string
         {
             return $this->getFileURL().Router::PATH_DELIMITER.Router::CRAWLER_LIST;
@@ -126,6 +143,7 @@
         }
         
         public function POSTredirect($url, $feedback)
+            //Apres utilisation d'un POST (generalement invalide), affiche un message feedback a l'utilisateur, et redirige sur une autre page
         {
             $_SESSION['feedback'] = $feedback;
             return header("Location: ".htmlspecialchars_decode($url), true, 303);
