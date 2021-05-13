@@ -11,7 +11,7 @@
         private $readAll;
 
         public function __construct(PDO &$db){
-            parent::__construct($db, 'task');
+            parent::__construct($db, 'tache', 'id');
             $this->readAll = $db->prepare('SELECT * FROM tache WHERE '.Task::CRAWLERID_REF.'=:id ORDER BY '.Task::BEGINDATE_REF);
         }
 

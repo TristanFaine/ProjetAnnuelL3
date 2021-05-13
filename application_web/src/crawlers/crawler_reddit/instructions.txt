@@ -1,4 +1,4 @@
-Instructions: 
+Instructions du crawler reddit: 
 Veuillez importer d'abord la librarie praw en fonction de votre situation.
 "pip install praw" si vous utilisez pip, etc.
 
