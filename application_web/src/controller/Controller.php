@@ -56,20 +56,18 @@
                 //OK C'EST BON J'AI LA BONNE IDEE... JE PENSE
                 //1. AffichageUtil recoit une liste de taches et demande a creer un fichier tachelog$taskid.txt (log) pour chaque tache.
                 //   De plus, il cree un div pour chaque tache, pour pouvoir indiquer la progression de chacune.
-                //2. AffichageUtil envoie les taches a faire vers Manager, en indiquant si c'est un debut de tache ou une reprise.
-                //3. Manager demande a faire les taches 1 par 1, selon la source, entrypoint, etc.. et renvoie les pid a l'interface.
-                //4. AffichageUtil regarde de temps en temps les fichiers log de chaque tache, et renvoie la progression
-                //5. AffichageUtil regarde en meme temps si Manager renvoie une reponse, si c'est le cas, alors c'est que toutes les taches sont terminees (normalement)
-                //6. Si en fait, manager renvoie les pid.. il faudrait avoir un autre moyen de savoir si toute les taches sont terminees.
-                //Peut-etre que dans la logique de script, si l'array des PID est vide, alors on va vers la page d'insertion?
-                //Et la page d'insertion recupere les donnees des fichiers .json
+                // ^ a refaire avec un framework type bootstrap
+                //2. Il demande a faire les taches 1 par 1, selon la source, entrypoint, etc.. et renvoie les pid.
+                //3. Ilregarde de temps en temps les fichiers log de chaque tache, et renvoie la progression
+                //4. Quand toutes les taches sont finies.. il redirige vers la page d'insertion
+                //   Et la page d'insertion recupere les donnees des fichiers .json
 
 
 
-                //Une alternative serait de creer un serveur/manager PHP,JS, ou autre, utilisant le protocole websocket, lui communiquer une liste de taches
+                //Une alternative serait de creer un serveur/manager PHP, JS, ou autre, utilisant le protocole websocket, lui communiquer une liste de taches
                 //et de recuperer le resultat en l'ecoutant.
                 //Mettre cela en place pour notre client web semble etre overkill et serait plutot approprie pour la communication API, meme si une architecture REST
-                //est toujours la technique la plus appropriee.
+                //est toujours la technique la plus appropriee, car on ne reste pas en ecoute sur le serveur tout le temps.
 
 
                 //TODO: Faire appels de script depuis manager : X
@@ -92,30 +90,41 @@
                 //Preparation de valeurs communes aux taches (Id, PID du script, source)
                 var containerDiv = document.getElementById('container');
                 var taskIdArray = [];
+                var taskIdArrayCopy = [];
                 var taskPIDArray = [];
                 var taskIndexCount = <?php echo count($taskIdArray)?>;
+                var completionCount = 0;
                 var source = <?php echo json_encode($source)?>;
                 var cache_path = <?php echo json_encode($cache_path)?>;
                 //Affichage de la progression des taches:
                 function XHRLogSearch() {
-                    //TODO: Verifier si taskIndexCount est vide/taille 0, si c'est le cas, renvoyer vers la page d'insertion
-                    for (let i = 0; i < taskIndexCount; i++) {
+                    for (let i = taskIdArrayCopy.length - 1; i >= 0; i--) {
                         var xhr = new XMLHttpRequest();
-                        xhr.open("get", "/"+cache_path+"/Tache"+taskIdArray[i]+"Log.txt", true);
+                        xhr.responseType = 'json';
+                        xhr.open("get", "/"+cache_path+"/Tache"+taskIdArrayCopy[i]+"Log.json", true);
                         xhr.send();
                         xhr.onload = function() {
                             //TODO: Refaire ceci apres integration Bootstrap?
                             let taskDiv = containerDiv.getElementsByClassName('taskProgress')[i];
-                            taskDiv.innerHTML = this.responseText;
-                            //console.log("tache " + i + " existe : " + this.responseText);
-
-                            //TODO: Si le message commence par "Tache " +i+ " terminee", alors enlever de la pile js.
-
-                            //TODO: Remplacer le txt brut par un json pour pouvoir recuperer des informations en plus.
-                            //genre status=done ou notdone
-                            //progression = le message qu'on souhaite montrer sur l'interface.
-                            //et endDate = un print date a la toute fin.
+                            if (this.response['status'] === 1){
+                                //Crawler en cours d'execution:
+                                taskDiv.innerHTML = "Tache " + taskIdArrayCopy[i] +"(" + this.response['entrypoint'] + ") en cours d'execution : " + this.response["global_index"] + " donnees recuperees";
+                                //TODO: bouton d'envoi de signal kill ou sigcont sigstop (equivalent windows aussi)
+                            } else if (this.response['status'] === 0) {
+                                //Execution finie.
+                                taskDiv.innerHTML = "Execution de tache " + taskIdArrayCopy[i] +"(" + this.response['entrypoint'] + ") finie : " + this.response["global_index"] + " donnees recuperees";
+                                //Enlever la tache de la liste:
+                                taskIdArrayCopy.splice(i, 1)
+                                taskPIDArray.splice(i, 1)
+                                completionCount = completionCount + 1;
+                            }
                         }
+                    }
+                    
+                    if (completionCount == taskIndexCount) {
+                        //Cette condition n'est remplie que si toutes les taches sont finies. On arrete de regarder les fichiers log.
+
+                        return;
                     }
                     setTimeout("XHRLogSearch()",5000);   
                 }
@@ -123,16 +132,17 @@
                 <?php
                 foreach ($taskIdArray as $taskId){
                     //Creation du fichier log.
-                    if (!touch($cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.txt")){
+                    if (!touch($cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.json")){
                         //TODO: meilleure gestion de l'erreur.
                         echo('Acces aux logs impossible, veuillez verifier la structure des dossiers de l\'application');
                         throw new Exception('Acces aux logs impossible, veuillez verifier la structure des dossiers de l\'application');
                     }                 
-                    file_put_contents($cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.txt","La tache " .$taskId. " n'a pas encore ete executee");
+                    file_put_contents($cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.json","La tache " .$taskId. " n'a pas encore ete executee");
                     echo "<div class='taskProgress'></div>";
                     ?>
                     <script>   
                         taskIdArray.push(<?php echo $taskId?>);
+                        taskIdArrayCopy.push(<?php echo $taskId?>);
                     </script>
                     <?php
                 }
@@ -141,41 +151,10 @@
                 ?>
                 <script>
                 //Une fois que notre array est rempli, on lance les appels ajax vers les fichiers log.
+                //TODO: Retarder la premiere execution de cette fonction, pour ne pas avoir de NULL.
                 XHRLogSearch();
-
-                //On appelle ensuite l'appeleur de scripts
-                //On envoie la liste de taches a faire, et le type de source.
-                var xhrCaller = new XMLHttpRequest();
-                var xhrSentData = ''
-                    + 'source=' + window.encodeURIComponent(source)
-                    + '&taskIdArray=' + JSON.stringify(taskIdArray)
-                    + '&token=' + window.encodeURIComponent('unknown');
-
-
-                //On recoit une reponse, ainsi que la liste des pids.
-                //TODO: Effacer cette fonction si l'on se rends compte que l'on n'en a pas besoin.
-                function XHRGetCallerData() {
-                    xhrCaller.open("POST", "/src/controller/ScriptCaller.php", true);
-                    xhrCaller.setRequestHeader("Content-type", "application/x-www-form-urlencoded"); 
-                    xhrCaller.send(xhrSentData);
-                    xhrCaller.onload = function() {
-                        const jsonData = JSON.parse(this.responseText);
-                            //TODO: Faire une vraie gestion d'erreur..
-                            if (jsonData['error'] === 'INVALID_TOKEN') {
-                                console.log("Votre token d'authentification est invalide, veuillez refaire une requete depuis la selection de crawler.");
-                            }
-                            console.log(jsonData);
-                            //Recuperer les pids... et faire quelque chose avec.
-                    } 
-                }
-
-                //XHRGetCallerData();
-
-
-                //En fait, on n'a pas besoin de faire un appel AJAX vu qu'on utilise ce truc qu'une seule fois. donc on va le faire en dessous.
-                //C'est juste moins lisible et comprehensible.
-                </script>
                 
+                </script>
                 <?php
                 //On va maintenant appeler les scripts en arriere-plan et recuperer leur PID.
                     switch (strtolower($source)) {
@@ -203,7 +182,7 @@
                     //Machine Utilisateur = Windows:
                     //TODO: Call scripts and get PID using powershell wizardry
                     foreach ($taskIdArray as $taskId){
-                        echo "pas encore fait pour windows dsl";
+                        echo "pas encore disponible pour windows, desole";
                     }
                 } else {
                     //Machine Utilisateur != Windows:
@@ -214,24 +193,26 @@
 
                         //TODO: Ameliorer la gestion des erreurs, et afficher sur l'interface lorsqu'une erreur se produit.
                         //Faire un fichier ErrorLog commun.
-                        //Du coup pour l'affichage de celui-ci...hm
+                        //Du coup pour l'affichage de celui-ci...hmm
                         $args = array($source, $taskId, $entrypoint);
                         $command = $script_path . " " . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1 & echo $!; ';
                         $pid = exec($command);
                         ?>
                         <script>   
                         taskPIDArray.push(<?php echo $pid?>);
-                        console.log(taskPIDArray);
                         </script>
                         
                         <?php
                     
 
-                    //TODO: finir appels script
-                    //TODO: remplacer lecture log txt par json
                     //TODO: permettre envoi signaux sigstop/sigcont ou equivalent windows
-                    //TODO: Affichage page d'insertion quand toutes les taches sont terminees.
+                    //Du coup, si on a une liste de PID dans js.. trouver un moyen d'envoyer ceux-ci a PHP.
+                    //TODO: finir appels scripts (quora et discord. peut-etre refaire discord en python)
+                    //      mettre cote incremental dans les crawlers (mettre dernier ID connu ou dernier texte connu)
+                    //TODO: Page d'insertion quand toutes les taches sont terminees.
+                    //TODO: Faire page d'extraction (prendre 1ere valeur de 'path' avant le '/')
                     //TODO: faire authentification avec token
+                    //TODO: Remplacer bdd locale par utilisation d'API sur serveurs universite.
                     }
 
                 }
@@ -247,23 +228,41 @@
         }
 
 
+    
+        public function insertData($taskIdArray, $crawlerId){
+            //TODO: Prendre en compte l'authentification par token pour eviter d'avoir des problemes tel des doublons.
 
+            //TODO: dire a l'utilisateur ce qui va etre envoyee a la bdd
+
+
+            //TODO: bouton de confirmation
+
+
+            //TODO: commencer l'insertion des donnees.
+
+            //TODO: afficher succes/erreur de l'operation.
+
+
+
+
+        }
         public function showSources(){
             //Find every distinct source + path in the crawled text database
                 //$crawlers = $this->crawlerStorage->readAll();
             //Make an array composed of unique source + path:
 
             //TODO: Connection API, afficher toutes les sources possibles (source + tache => Reddit/france, ou Discord/serveurArt, etc.)
+            //                                                                                      art                serveurFrance
 
             //valeurs bidon pour exemple:
-            $bidon11 = array('Discord', 'Fake/path/1');
-            $bidon12 = array('Discord', 'Fake/path/2');
-            $bidon13 = array('Discord', 'Fake/path/3');
-            $bidon21 = array('Quora', 'Fake/path/1');
-            $bidon22 = array('Quora', 'Fake/path/2');
-            $bidon311 = array('Reddit', 'Fake/path/1/3');
+            $bidon11 = array('Discord', 'Fake/path/discord/serveurArt');
+            $bidon12 = array('Discord', 'Fake/path/discord/serveurUniv');
+            $bidon21 = array('Quora', 'Fake/path/quora/FAQArt');
+            $bidon22 = array('Quora', 'Fake/path/quora/FAQPolitique');
+            $bidon31 = array('Reddit', 'Fake/path/reddit/art');
+            $bidon32 = array('Reddit', 'Fake/path/reddit/france');
 
-            $bidon = array($bidon11,$bidon12,$bidon13,$bidon21,$bidon22,$bidon311);
+            $bidon = array($bidon11,$bidon12,$bidon21,$bidon22,$bidon31,$bidon32);
 
 
             $this->view->makeSourceListPage($bidon);

@@ -37,12 +37,11 @@ comment_dict_list = []
 comment_dict = {}
 scrapper = reddit.subreddit(subreddit)
 
-post_index = 0
 global_index = 0
 
 def logtoFile(f_stop):
     log_file = open(rel_path + "Log.json", 'w')
-    json.dump({'status' : 1, 'post_index' : post_index, 'global_index' : global_index}, log_file)
+    json.dump({'status' : 1, 'global_index' : global_index, 'entrypoint' : subreddit}, log_file)
     log_file.close()
     if not f_stop.is_set():
         # call f() again in 5 seconds
@@ -74,17 +73,18 @@ for post_id in post_list:
         comment_dict_list.append(comment_dict)
         comment_index = comment_index + 1
         global_index = global_index + 1
-    post_index = post_index + 1
     
 #Arreter le thread du log.
 f_stop.set()
 
 #Exporter le resultat final.
+#TODO: Exporter des donnees au cours du script, si quelqu'un interrompt le script et re-execute plus tard... aucune progression n'est sauvegardee.
 with open(rel_path + "Data.json","w") as f:
     json.dump(comment_dict_list,f)
+
 
 #Garantir un affichage status : 0, lors de la fin d'execution du script.
 time.sleep(5)
 log_file = open(rel_path + "Log.json", 'w')
-json.dump({'status' : 0, 'post_index' : post_index, 'global_index' : global_index}, log_file)
+json.dump({'status' : 0, 'global_index' : global_index, 'entrypoint' : subreddit}, log_file)
 log_file.close()

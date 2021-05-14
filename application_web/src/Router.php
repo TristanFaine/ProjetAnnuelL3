@@ -68,7 +68,7 @@
                     break;
                 default:
                 //Utiliser length pour afficher des cas specialises:
-                //par exemple, quand on a index.php/crawlerid=4/taskid=3/action=execute ou autre
+                //par exemple, quand on a index.php/crawlerid=4/action=taskList ou autre
                     $action = ($length >= 3) ? $path_infos[2] : '';
                     switch($action){
                         case Router::TASK_LIST:
@@ -80,11 +80,11 @@
                             break;
                         case Router::INSERT:
                             if($_SERVER['REQUEST_METHOD'] === 'GET'){
-                                //This shouldn't be possible so redirect to home
+                                //Cela ne devrait pas etre possible donc redirection.
                                 $controller->showHome();
                             }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
                                 //Post should be collected json data from crawlers
-                                $controller->doTasks($_POST, $arg1);
+                                $controller->insertData($_POST['taskIdArray'], $arg1);
                             }
                                 break;
                         default:
