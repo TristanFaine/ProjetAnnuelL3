@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 //Necessite d'installer le module discord.js
 const Discord = require('discord.js');
 const fs =require('fs');

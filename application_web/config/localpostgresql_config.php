@@ -8,3 +8,12 @@ $POSTGRESQL_HOST = "postgres.info.unicaen.fr";
 
 //Info de ma base local:
 //Rien pour l'instant.
+
+
+
+
+$MY_HOST = "localhost";
+$MY_NAME = "testdb";
+$MY_PORT = "5432";
+$MY_USER = "postgres";
+$MY_PASSWORD = "Ni85xlao9nb4A";

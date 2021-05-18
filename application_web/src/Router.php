@@ -50,10 +50,6 @@
             $arg1 = ($length >= 2 && $path_infos[1] !== '') ? $path_infos[1] : Router::HOME;
             
             switch($arg1){
-                case "TEST":
-                    //Test every time i want to do a thing, then try to integrate later..
-                    $controller->doTest();
-                    break;
                 case Router::HOME:
                     $controller->showHome();
                     break;
@@ -68,7 +64,7 @@
                     break;
                 default:
                 //Utiliser length pour afficher des cas specialises:
-                //par exemple, quand on a index.php/crawlerid=4/action=taskList ou autre
+                //par exemple, quand on a index.php/crawlerid=4/action=taskList
                     $action = ($length >= 3) ? $path_infos[2] : '';
                     switch($action){
                         case Router::TASK_LIST:
@@ -80,13 +76,13 @@
                             break;
                         case Router::INSERT:
                             if($_SERVER['REQUEST_METHOD'] === 'GET'){
-                                //Cela ne devrait pas etre possible donc redirection.
-                                $controller->showHome();
+                                //On affiche une page de confirmation d'insertion.
+                                $controller->askDataInsertion();
                             }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
-                                //Post should be collected json data from crawlers
-                                $controller->insertData($_POST['taskIdArray'], $arg1);
+                                //Le controleur recupere les donnees JSON.
+                                $controller->insertData();
                             }
-                                break;
+                            break;
                         default:
                          $controller->show404();
                             break;
@@ -127,9 +123,9 @@
         {
             return $this->getCrawlerURL($crawlerID).Router::PATH_DELIMITER.Router::TASK_LIST;
         }
-        public function getInsertURL(): string
+        public function getInsertURL($crawlerID): string
         {
-            return $this->getFileURL().Router::PATH_DELIMITER.Router::INSERT;
+            return $this->getCrawlerURL($crawlerID).Router::PATH_DELIMITER.Router::INSERT;
         }
 
         public function getImportURL(): string
@@ -143,7 +139,7 @@
         }
         
         public function POSTredirect($url, $feedback)
-            //Apres utilisation d'un POST (generalement invalide), affiche un message feedback a l'utilisateur, et redirige sur une autre page
+            //redirige sur une autre page POST
         {
             $_SESSION['feedback'] = $feedback;
             return header("Location: ".htmlspecialchars_decode($url), true, 303);

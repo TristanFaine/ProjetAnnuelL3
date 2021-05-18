@@ -7,7 +7,7 @@
 //Mise en place d'une architecture MVC:
 
     //On utilise une bdd locale dans le cadre de la demonstration.
-    require_once('./api/config/localpostgresql_config.php');
+    require_once('./config/localpostgresql_config.php');
     $dsn = "pgsql:host=".$MY_HOST.";port=".$MY_PORT.";dbname=".$MY_NAME;
     $db = new PDO($dsn, $MY_USER, $MY_PASSWORD);
 

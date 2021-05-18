@@ -29,17 +29,41 @@
 
     public function makeHomePage(){
         $this->title = 'Acceuil: Application Crawler Incremental';
-        $this->content = '<h1>Bienvenue sur le prototype de la page d\'acceuil</h1>';
-        //Afficher 2 boutons : 1 qui dit "selectionner crawler", l'autre qui dit "extraction de donnees" en js.
+        $this->content = '<h1>Page d\'acceuil de crawler incremental, aucune session detectee.</h1>';
         $this->content .= '<h2><a href="' .$this->router->getcrawlerListURL(). '">Cliquer ici pour selectionner un crawler</a></h2>';
         $this->content .= '<h2><a href="' .$this->router->getImportURL(). '">Cliquer ici pour recuperer des donnees deja crawlees</a></h2>';
 
     }
 
+    public function makeResumePage(array &$local_session_data){
+        $this->title = 'Reprise du crawling';
+        $this->content = '<div id="instructions_util">Reprise de la session : ' . $local_session_data["sessionId"];
+        $this->content .= '<br/>Crawler utilise : ' . $local_session_data["crawlerId"] . '(' .$local_session_data["crawlerSource"] .')';
+        for($i = 0; $i <= count($local_session_data["taskIdArray"]) - 1; $i++){
+            switch($local_session_data["taskStatusArray"][$i]) {
+                case 0:
+                    $taskStatus = "Fini";
+                    break;
+                case 1:
+                    $taskStatus = "Interrompue en cours d'execution";
+                    break;
+                case 2:
+                    $taskStatus = "Pas encore executee";
+                    break;
+            };
+            $this->content .= "<br/>Tache : " . $local_session_data["taskIdArray"][$i] . " | Status : " . $taskStatus;
+        }
+        $this->content .= '<br/> Premiere execution le : ' . date('m/d/Y h:i:s a',$local_session_data["firstDate"]);
+        $this->content .= '<br/> Derniere execution le : ' . date('m/d/Y h:i:s a',$local_session_data["lastDate"]);
+
+
+        $this->content .= '<h2><a href="' . $this->router->getTaskListURL($local_session_data["crawlerId"]) . '">Cliquer ici pour reprendre le crawling</a></h2>';
+        $this->content .= '<h2><a href="' . $this->router->getInsertURL($local_session_data["crawlerId"]) . '">Cliquer ici pour inserer les donnees et effacer le cache</a></h2>';
+    }
+
 
     //Actions liees aux crawlers:
     public function makeCrawlerListPage(array &$crawlers){
-        //Quand on clique, on affiche les taches disponibles.
         $this->title = 'Liste des crawlers disponibles';
         $this->content = '<p>Veuillez selectionner un type de crawler:';
         $this->content .= '<ul class=list>';
@@ -50,7 +74,6 @@
         }
         $this->content .= '</p>';
 
-        //'<a href="'.$this->router->getWaterbottleAskDeletionURL($id).'">Supprimer cette bouteille d\'eau ?</a><br>'.
     }
 
     public function makeTaskListPage(array &$tasks){
@@ -59,16 +82,45 @@
         $this->content .= "<form method='post' action = '".htmlspecialchars($_SERVER["PHP_SELF"]) . "' > <table> ";
         foreach($tasks as $id => $task) {
             $this->content .= "<tr><td> Tache n°" .$task->getId()." </td>";
-            //??? pourquoi il me force le tr
             $this->content .= "<td> <input type='checkbox' name = 'taskIdArray[]' value='".$task->getId()."'> statut : ".$task->getStatus().", point d'entree : ".$task->getEntry(). ", derniere execution le ".$task->getEndDate() . "</td>";
             $this->content .= "</tr>";
         }
 
         $this->content .= " </table> <input type='submit' class='buttons'> </form>";
 
-        //Ensuite, faire un bouton submit.. je suppose..?
     }
-    
+
+    public function makeTaskExecutionPage($JSLogic) {
+        $this->title = 'Execution de taches';
+        $this->content = '<p id="instructions_util">Veuillez patienter le temps que les scripts s\'executent.</p>';
+        //Contient toutes les balises <script> pour la verification asynchrone de la progression des scripts.
+        $this->content .= $JSLogic;
+        
+    }
+
+    public function makeDataInsertionPage($crawlerId) {
+        $local_session_data = json_decode(file_get_contents("cache/local_session_info.json"), true);
+
+        $this->title = 'Confirmation d\'insertion';
+        
+        $this->content = '<div id="instructions_util">Si vous souhaitez inserer les donnees recuperees par le crawler ' . $local_session_data["crawlerSource"] . ' pour les taches : '; 
+        foreach($local_session_data["taskIdArray"] as $taskId) {$this->content .= $taskId . ", ";};
+        $this->content .= '<br/>Alors veuillez cliquer sur le bouton "Insertion" ci-dessous. </div>';
+
+        $this->content .= '<form action="'.$this->router->getInsertURL($crawlerId).'", method="post">'.
+                    '<label><button type="submit">Confirmer</button></label></form>';
+
+        
+        
+    }
+
+    public function makeInsertionCompletePage(){
+        $this->title = 'Insertion reussie';
+        $this->content = '<p id="instructions_util">Insertion reussie, vous pouvez maintenant quitter le navigateur, ou faire une nouvelle action.</p>';
+
+
+    }
+    //Actions liees a l'importation de donnees:
 
     public function makeSourceListPage(array &$sources){
         //Array recieved should be of format Source : Path
@@ -91,7 +143,7 @@
         $this->content .= '</p>';
     }
 
-    //Actions liees a l'importation de donnees:
+
 
 
     //Pages annexes
@@ -124,55 +176,12 @@
             $this->content = $e->getMessage();
         }
 
-
-
-
-    public function makeTestPage(){
-            $this->title = 'Test appel AJAX multiple';
-            $this->content = "<p>JE DEVRAIS TOUJOURS ETRE VISIBLE, MAIS UNE SEULE FOIS.</p>";
-
-            //make ajax/websocket/normal js here
-            /*
-            
-            */
-            
-
-            ///... asynchronous.. signal handler.... HOW.
-            ?>
-            <script type="text/javascript">
-            //how the fuck do I make an asynchronous request to myself?
-            console.log("ayo");
-            function loadXMLDoc() {
-                var xhr = new XMLHttpRequest();
-
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-                    if (xhr.status == 200) {
-                        alert(xhr.responseText);
-                    }
-                    else if (xhr.status == 400) {
-                        alert('There was an error 400');
-                    }
-                    else {
-                        alert('something else other than 200 was returned');
-                    }
-                    }
-                };
-
-                xhr.open("GET", "ScriptManagxfdder.php", true);
-                xhr.send();
-            }
-
-            loadXMLDoc();
-            </script>
-            <?php
-
-
-
-    }
     public function makeInvalidTasks($crawlerId){
         $this->router->POSTredirect($this->router->getTaskListURL($crawlerId),'Veuillez choisir au moins une tache..');
-        echo $feedback;
+    }
+
+    public function makeInvalidInsertionAccess(){
+        $this->router->POSTredirect($this->router->getHomeURL(),'Echec de tentative d\'insertion, avez-vous selectionne un crawler et une liste de taches a faire?');
     }
     
 
