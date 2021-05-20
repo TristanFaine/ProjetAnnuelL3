@@ -8,6 +8,9 @@
         public function read($id) : Task;
 
         public function readAll($crawlerId) : array;
+        
+        public function readEverything(int $length=-1, int $n=0) : array;
+
 
         public function update(Task &$task, $id) : bool;
 

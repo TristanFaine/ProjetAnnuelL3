@@ -23,9 +23,8 @@
         const ABOUT = 'about';
         const PATH_DELIMITER = '/';
 
-        //Mettre l'argument de BDD plus tard
-        //CrawledTextStorage &$crawledtextStorage, TaskStorage &$taskStorage, AccountStorage &$accountStorage
-        public function main(CrawlerStorage &$crawlerStorage, TaskStorage &$taskStorage){
+        //TODO: Enlever appels BDD quand on utilisera API a distance
+        public function main(CrawlerStorage &$crawlerStorage, TaskStorage &$taskStorage, SessionStorage &$sessionStorage, CrawledTextStorage &$crawledTextStorage){
             if(session_status() == PHP_SESSION_NONE){
                 session_name('crawlerAppSession');
                 session_start();
@@ -37,7 +36,7 @@
             $view = new View($this,$feedback);
             
             //mettre argument de BDD plus tard
-            $controller = new Controller($this, $view, $crawlerStorage, $taskStorage);
+            $controller = new Controller($this, $view, $crawlerStorage, $taskStorage, $sessionStorage, $crawledTextStorage);
             
             if(!key_exists('PATH_INFO', $_SERVER)){
                 $_SERVER['PATH_INFO'] = '';
@@ -49,45 +48,91 @@
             //si aucune info alors affichage page d'acceuil
             $arg1 = ($length >= 2 && $path_infos[1] !== '') ? $path_infos[1] : Router::HOME;
             
-            switch($arg1){
-                case Router::HOME:
-                    $controller->showHome();
-                    break;
-                case Router::CRAWLER_LIST:
-                    $controller->showCrawlers();
-                    break;
-                case Router::IMPORT:
-                    $controller->showSources();
-                    break;
-                case Router::ABOUT:
-                    $controller->showAbout();
-                    break;
-                default:
-                //Utiliser length pour afficher des cas specialises:
-                //par exemple, quand on a index.php/crawlerid=4/action=taskList
-                    $action = ($length >= 3) ? $path_infos[2] : '';
-                    switch($action){
-                        case Router::TASK_LIST:
-                            if($_SERVER['REQUEST_METHOD'] === 'GET'){
-                                $controller->showTasks($arg1);
-                            }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
-                                $controller->doTasks($_POST['taskIdArray'], $arg1);
-                            }
-                            break;
-                        case Router::INSERT:
-                            if($_SERVER['REQUEST_METHOD'] === 'GET'){
-                                //On affiche une page de confirmation d'insertion.
-                                $controller->askDataInsertion();
-                            }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
-                                //Le controleur recupere les donnees JSON.
-                                $controller->insertData();
-                            }
-                            break;
-                        default:
-                         $controller->show404();
-                            break;
-                    }
-                
+            
+            //Si il y a une session pre-existante:
+            if (file_exists('cache/local_session_info.json')) {
+                $local_session_data = json_decode(file_get_contents("cache/local_session_info.json"), true);
+                switch($arg1){
+                    case Router::HOME:
+                        $controller->showHome();
+                        break;
+                    case Router::CRAWLER_LIST:
+                        $controller->showHome();
+                        break;
+                    case Router::IMPORT:
+                        $controller->showSources();
+                        break;
+                    case Router::ABOUT:
+                        $controller->showAbout();
+                        break;
+                    default:
+                    //Utiliser length pour afficher des cas specialises:
+                    //par exemple, quand on a index.php/crawlerid=4/action=taskList
+                        $action = ($length >= 3) ? $path_infos[2] : '';
+                        switch($action){
+                            case Router::TASK_LIST:
+                                if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                                    $controller->doTasks($local_session_data["taskIdArray"], $arg1);
+                                }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                                    $controller->doTasks($local_session_data["taskIdArray"], $arg1);
+                                }
+                                break;
+
+                            //TODO: PUT THIS ONE "DIRECTORY" BACK
+                            case Router::INSERT:
+                                if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                                    $controller->askDataInsertion();
+                                }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                                    $controller->insertData();
+                                }
+                                break;
+                            default:
+                            $controller->show404();
+                                break;
+                        }
+                }
+            }
+            else {
+                //Si il n'y a pas de session pre-existante
+                switch($arg1){
+                    case Router::HOME:
+                        $controller->showHome();
+                        break;
+                    case Router::CRAWLER_LIST:
+                        $controller->showCrawlers();
+                        break;
+                    case Router::IMPORT:
+                        $controller->showSources();
+                        break;
+                    case Router::ABOUT:
+                        $controller->showAbout();
+                        break;
+                    default:
+                    //Utiliser length pour afficher des cas specialises:
+                    //par exemple, quand on a index.php/crawlerid=4/action=taskList
+                        $action = ($length >= 3) ? $path_infos[2] : '';
+                        switch($action){
+                            case Router::TASK_LIST:
+                                if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                                    $controller->showTasks($arg1);
+                                }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                                    $controller->doTasks($_POST['taskIdArray'], $arg1);
+                                }
+                                break;
+                            case Router::INSERT:
+                                if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                                    //On affiche une page de confirmation d'insertion.
+                                    $controller->askDataInsertion();
+                                }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                                    //Le controleur recupere les donnees JSON.
+                                    $controller->insertData();
+                                }
+                                break;
+                            default:
+                            $controller->show404();
+                                break;
+                        }
+                }
             }
             $view->render();
 

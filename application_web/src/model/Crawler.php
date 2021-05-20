@@ -26,6 +26,10 @@
             return $this->source;
         }
 
+        public function setSource(string $source){
+            $this->source = $source;
+        }
+
         public function getChecksum() : string{
             return $this->checksum;
         }

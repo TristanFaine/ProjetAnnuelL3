@@ -6,15 +6,16 @@
         protected $router;
         protected $feedback;
         protected $title;
-        protected $menu;
+        //protected $menu;
         protected $content;
 
         public function __construct(Router &$router, $feedback){
             $this->router = $router;
             $this->feedback = $feedback;
-            $this->menu = $this->getMenu();
+            //$this->menu = $this->getMenu();
         }
 
+        /*
         public function getMenu(): array{
             return array(
                 "Acceuil" => $this->router->getHomeURL(),
@@ -24,13 +25,14 @@
             );
 
         }
+        */
 
     //Pages disponibles:
 
     public function makeHomePage(){
         $this->title = 'Acceuil: Application Crawler Incremental';
         $this->content = '<h1>Page d\'acceuil de crawler incremental, aucune session detectee.</h1>';
-        $this->content .= '<h2><a href="' .$this->router->getcrawlerListURL(). '">Cliquer ici pour selectionner un crawler</a></h2>';
+        $this->content .= '<h2><a href="' .$this->router->getCrawlerListURL(). '">Cliquer ici pour selectionner un crawler</a></h2>';
         $this->content .= '<h2><a href="' .$this->router->getImportURL(). '">Cliquer ici pour recuperer des donnees deja crawlees</a></h2>';
 
     }
@@ -42,7 +44,7 @@
         for($i = 0; $i <= count($local_session_data["taskIdArray"]) - 1; $i++){
             switch($local_session_data["taskStatusArray"][$i]) {
                 case 0:
-                    $taskStatus = "Fini";
+                    $taskStatus = "Finie";
                     break;
                 case 1:
                     $taskStatus = "Interrompue en cours d'execution";
@@ -76,17 +78,21 @@
 
     }
 
-    public function makeTaskListPage(array &$tasks){
+    public function makeTaskListPage(array &$tasks, $source){
+        //TODO: Ameliorer l'UI en indiquant les infos sur le crawler actuel.
         $this->title = 'Liste des tâches disponibles';
         $this->content = '<p>Liste des tâches disponibles, veuillez selectionner celles que vous voulez executer:</p>';
-        $this->content .= "<form method='post' action = '".htmlspecialchars($_SERVER["PHP_SELF"]) . "' > <table> ";
+        $this->content .= '<p>Le crawler choisi va crawl le service : ' . $source . '</p>';
+        $this->content .= '<form method="post" action = "'.htmlspecialchars($_SERVER["PHP_SELF"]) . '">';
         foreach($tasks as $id => $task) {
-            $this->content .= "<tr><td> Tache n°" .$task->getId()." </td>";
-            $this->content .= "<td> <input type='checkbox' name = 'taskIdArray[]' value='".$task->getId()."'> statut : ".$task->getStatus().", point d'entree : ".$task->getEntry(). ", derniere execution le ".$task->getEndDate() . "</td>";
-            $this->content .= "</tr>";
+            $this->content .= '<div class="form-check">';
+            //"<tr><td> Tache n°" .$task->getId()." </td>";
+            $this->content .= '<input class="form-check-input" type="checkbox" name = "taskIdArray[]" value="'.$task->getId().'" id = "taskCheckbox' . $task->getId() . '">';
+            $this->content .= '<label class="form-check-label" for="flexCheckDefault"> Tache n°' . $task->getId() .' statut : '.$task->getStatus().', point d\'entree : '.$task->getEntry(). ', derniere execution le '. date('m/d/Y h:i:s a',$task->getEndDate()) . '</label>';
+            $this->content .= '</div>';
         }
 
-        $this->content .= " </table> <input type='submit' class='buttons'> </form>";
+        $this->content .= "<input type='submit' class='btn btn-primary' value='Envoyer'> </form>";
 
     }
 
@@ -117,30 +123,42 @@
     public function makeInsertionCompletePage(){
         $this->title = 'Insertion reussie';
         $this->content = '<p id="instructions_util">Insertion reussie, vous pouvez maintenant quitter le navigateur, ou faire une nouvelle action.</p>';
-
+        $this->content .= '<h2><a href="' .$this->router->getHomeURL(). '">Cliquer ici pour revenir sur la page d\'acceuil</a></h2>';
 
     }
     //Actions liees a l'importation de donnees:
 
     public function makeSourceListPage(array &$sources){
-        //Array recieved should be of format Source : Path
-        //Represent like this:
-        // - Source
-        // -    Path 1
-        // -    Path 2
-        // -        Path 2/1
-        //A fancy dragdown menu akin to a file explorer menu should be doable..
+
+        //Affichage de format "Tache X : Source/EntryPoint
         $this->title = 'Liste des sources disponibles';
-        $this->content = '<p>Veuillez selectionner une source de donnees:';
-        $this->content .= '<ul class=list>';
+        $this->content .= '<h4 class="display-4">Veuillez selectionner une source de donnees: </h4>';
+        
+        $this->content .= '<ul>';
+
+        
+    //TODO:Remplacer cette etape par un appel a l'API, ou ajouter un attribut a objet tache, ou faire depuis un fichier de configuration externe.     
         foreach($sources as $id => $source) {
             $this->content .= '<li>';
-            //if $source[1] contains '/' then split and put in sub-container, somehow.
             
-            $this->content .= $source[1];
+            switch ($source[0]) {
+                case 1:
+                    $this->content .= 'Crawler du site reddit.com' . ' | Tache : ' . $source[1] . ' | Point d\'entree: reddit.com/r/' . $source[2];
+                    break;
+                case 2:
+                    $this->content .= 'Crawler du logiciel Discord' . ' | Tache : ' . $source[1] . ' | Point d\'entree: ' . $source[2];
+                    break;
+
+                case 3:
+                    $this->content .= 'Crawler du site quora.com' . ' | Tache : ' . $source[1] . ' | Point d\'entree: ' . $source[2];
+                    break;
+                }
+            
             $this->content .= '</li>';
         }
-        $this->content .= '</p>';
+        $this->content .= '</ul>';
+
+        //TODO: Faire bouton pour confirmer => appel API => redirection succes
     }
 
 
@@ -178,10 +196,6 @@
 
     public function makeInvalidTasks($crawlerId){
         $this->router->POSTredirect($this->router->getTaskListURL($crawlerId),'Veuillez choisir au moins une tache..');
-    }
-
-    public function makeInvalidInsertionAccess(){
-        $this->router->POSTredirect($this->router->getHomeURL(),'Echec de tentative d\'insertion, avez-vous selectionne un crawler et une liste de taches a faire?');
     }
     
 

@@ -1,6 +1,5 @@
 <?php
 
-
     require_once('AbstractDataBaseStorage.php');
     require_once('model/Crawler.php');
     require_once('model/CrawlerStorage.php');

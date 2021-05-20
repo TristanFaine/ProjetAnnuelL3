@@ -1,12 +1,12 @@
 Instructions du crawler reddit: 
-Veuillez importer d'abord la librarie praw.
+Veuillez importer d'abord la librarie praw et watchdog
 "pip install praw" si vous utilisez pip, etc.
 
 Ensuite:
 
 Veuillez appeler ce script en utilisant les arguments suivants :
 args[0] : Type de source (vaut 'reddit' par defaut)
-args[1] : Identifiant de tache (en cas d'utilisation manuelle, vaut 'manuel' par defaut)
+args[1] : Identifiant de tache (en cas d'utilisation manuelle, vaut 'unknown' par defaut)
 args[2] : Point d'entree de la tache (ici subreddit:france, art, ou autre)
 args[3] : Identifiant de la derniere donnee recuperee (identifiant de commentaire, ici)
 args[4] : Limite de donnees a recuperer. (par defaut : 10000 posts)

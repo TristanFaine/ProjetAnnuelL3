@@ -31,7 +31,7 @@ rel_path = os.path.join(script_dir, cache_path)
 #args[1] = id de tache
 #args[2] = Point d'entree de la tache (ici : nom de subreddit)
 #args[3] = Identifiant de la derniere donnee connue dans la BDD (ou contenu, si identifiant n'existe pas)
-#args[4] = limite de donnees a recuperer (ici : 500 commentaires)
+#args[4] = limite de donnees a recuperer (ici : X commentaires)
 #Structure d'une donnee: Text|Path|Index|realID
 
 reddit = praw.Reddit(client_id='ScN-UpZfhge5Gg', client_secret='qHpUqtbrlboH1iEla69J9PuFGZZZqA', user_agent='ScrapperFR')
@@ -41,7 +41,8 @@ comment_dict_list = []
 comment_dict = {}
 scrapper = reddit.subreddit(subreddit)
 
-#Regarder le log (status, index, progressId) et faire en consequence:
+#Regarder le log (status, index local, progressId) et faire en consequence:
+time.sleep(2)
 log_file = open(rel_path + "Log.json", 'r+')
 log_data = json.load(log_file)
 log_file.close()
@@ -81,9 +82,10 @@ observer.start()
 def logtoFile(log_stop_event):
     #TODO: Trouver un moyen pour ne pas avoir a ouvrir le fichier a chaque demande de log.
     log_file = open(rel_path + "Log.json", 'w')
-    json.dump({'status' : 1, 'global_index' : global_index, 'entrypoint' : subreddit, 'progressId' : progressId}, log_file)
+    json.dump({'status' : 1, 'local_index' : local_index, 'entrypoint' : subreddit, 'progressId' : progressId}, log_file)
+    log_file.close()
     if not log_stop_event.is_set():
-        # call f() again in 5 seconds
+        # call logtoFile() again in 5 seconds
         threading.Timer(5, logtoFile, [log_stop_event]).start()
 
 
@@ -95,12 +97,12 @@ if log_data['status'] == 0:
     exit()
 
 elif log_data['status'] == 1:
-    #Crawl en cours d'execution, continuer la recherche a partir du dernier Id recupere.
+    #Crawl en cours d'execution, reprendre la recherche a partir du dernier Id recupere.
     with open(rel_path + "Data.json","r") as f:
         comment_dict_list = json.load(f)
 
     CrawlerUpToDate = False
-    global_index = log_data['global_index']
+    local_index = log_data['local_index']
     progressId = log_data['progressId']
     lastId = progressId
 
@@ -113,8 +115,12 @@ elif log_data['status'] == 1:
         #Recherche en largeur des commentaires, on en extrait le corps.
         comment_index = 1
         for comment in submission.comments.list():
+            if args[3] == comment.id:
+                incremental_end_event.set()
+                CrawlerUpToDate = True
+                break
             if CrawlerUpToDate:
-                global_index = global_index + 1
+                local_index = local_index + 1
                 comment_dict = {}    
                 comment_dict['text'] = comment.body
                 comment_dict['path'] = subreddit + "/" + post.id
@@ -129,8 +135,8 @@ elif log_data['status'] == 1:
 
 
 
-        if global_index > args[4]:
-            print("LIMIT WAS : ", args[4], "CURRENT AMOUNT IS : ", global_index)
+        if local_index > args[4]:
+            print("LIMIT WAS : ", args[4], "CURRENT AMOUNT IS : ", local_index)
             break
         
         while pause_event.is_set():
@@ -149,7 +155,7 @@ elif log_data['status'] == 1:
 
 elif log_data['status'] == 2:
     #Premier lancement de crawl
-    global_index = 0
+    local_index = 0
     progressId = ''
 
     logtoFile(log_stop_event)
@@ -162,6 +168,8 @@ elif log_data['status'] == 2:
         for comment in submission.comments.list():
             #Si detection du meme commentaire qu'indique dans la BDD, alors on arrete le crawling
             if args[3] == comment.id:
+                print("RENCONTRE D'UNE DONNEE DEJA CONNUE, ARRET DU CRAWL")
+                print("DONNEE EST ", comment.id)
                 incremental_end_event.set()
                 break
             comment_dict = {}    
@@ -173,10 +181,10 @@ elif log_data['status'] == 2:
             comment_dict['taskID'] = args[1]
             comment_dict_list.append(comment_dict)
             comment_index = comment_index + 1
-            global_index = global_index + 1
+            local_index = local_index + 1
 
-        if global_index > args[4]:
-            print("LIMIT WAS : ", args[4], "CURRENT AMOUNT IS : ", global_index)
+        if local_index > args[4]:
+            print("LIMIT WAS : ", args[4], "CURRENT AMOUNT IS : ", local_index)
             break
         
         while pause_event.is_set():
@@ -202,6 +210,7 @@ log_stop_event.set()
 observer.stop()
 observer.join()
 
+
 #Exporter le resultat final.
 with open(rel_path + "Data.json","w") as f:
     json.dump(comment_dict_list,f)
@@ -210,9 +219,9 @@ with open(rel_path + "Data.json","w") as f:
 time.sleep(5)
 if kill_event.is_set():
     log_file = open(rel_path + "Log.json", 'w')
-    json.dump({'status' : 1, 'global_index' : global_index, 'entrypoint' : subreddit, 'progressId' : progressId}, log_file)
+    json.dump({'status' : 1, 'local_index' : local_index, 'entrypoint' : subreddit, 'progressId' : progressId}, log_file)
     log_file.close()
 else:
     log_file = open(rel_path + "Log.json", 'w')
-    json.dump({'status' : 0, 'global_index' : global_index, 'entrypoint' : subreddit, 'progressId' : progressId}, log_file)
+    json.dump({'status' : 0, 'local_index' : local_index, 'entrypoint' : subreddit, 'progressId' : progressId}, log_file)
     log_file.close()

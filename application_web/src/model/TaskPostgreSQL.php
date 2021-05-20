@@ -28,6 +28,13 @@
             }
         }
 
+
+
+        public function readEverything(int $length=-1, int $n=0) : array{
+            return $this->readALLObj($length, $n);
+        }
+
+
         public function readAll($crawlerId) : array{
             $this->readAll->execute(array(':id' => $crawlerId));
             $tasksAttributes = $this->readAll->fetchAll(PDO::FETCH_ASSOC);
@@ -50,7 +57,7 @@
 
         protected function getValuesToInsert(&$obj) : array{
             if($obj === NULL){
-                $obj = new Task(0, '', '', '', '', '', '');
+                $obj = new Task(0, 0, '', '', 0, 0, 0);
             }
             return $obj->toArray();
         }

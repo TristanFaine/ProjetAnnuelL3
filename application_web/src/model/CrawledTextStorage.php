@@ -4,13 +4,15 @@
 
     interface CrawledTextStorage{
 
-        //Calling create once per text encountered might cause unnecessary overhead.
-        //Perhaps a createBatch(String=JSON) function would be better suited.
-        //it's the same thing, but the function isn't called X times, just once.
+        //Appeler create 1 fois par texte peut potentiellement causer des problemes de performance
+        //Peut-etre qu'une function createBatch(String qui se convertir en Array) serait utile
+        //C'est la meme chose, mais la fonction est appelee seulement une seule fois, et la base de donnees aussi.
         
         public function create(CrawledText &$crawledText); //return $globalId
 
         public function createBatch(&$jsonData);
+
+        public function getLastKnownData($taskId);
 
         public function read($globalId) : CrawledText;
 

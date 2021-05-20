@@ -1,45 +1,32 @@
 <?php
-    //TODO: Put correct attributes when we are sure.
     class CrawledText
     {
-        private $globalId;
-        private $taskId;
         //following attributes can be put in a JSON format
-        private $text;     // Value of text.
-        private $source;   // Name of text's origin : service or website.
-        private $path;     // "path" used to access the text's container (A page, a channel, etc..).
-        private $index;    // If multiple texts belong to the same container, this assigns them a position. Defaults to 0.
-        private $realId;   // Identifies the text's container on a service or website. Defaults to "unknown"
+        private $text;
+        private $path;     // "Chemin" utilise pour acceder a l'emplacement du text (une page, une chaine, etc).
+        private $index;    // Si plusieurs textes appartiennent au meme container, cela indique leur position.
+        private $realId;   // Identifie l'emplacement du texte sur un site ou service.
+        private $taskId;
 
         // do not change, used as field name in DB
-        const GLOBALID_REF = 'globalid';
         const TEXT_REF = 'text';
-        const SOURCE_REF = 'source';
         const PATH_REF = 'path';
         const INDEX_REF = 'index';
         const REALID_REF = 'realid';
+        const TASKID_REF = 'taskid';
 
-        public function __construct(int $globalId, string $text, $source, $path, int $index, string $realId){
-            $this->globalId = $globalId;
+        public function __construct(string $text, $path, int $index, string $realId, int $taskId){
             $this->text = $text;
-            $this->source = $source;
             $this->path = $path;
             $this->index = $index;
             $this->realId = $realId;
-        }
-
-        public function getGlobalId() : float{
-            return $this->globalId;
+            $this->taskId = $taskId;
         }
 
         public function getText() : string{
             return $this->text;
         }
         
-        public function getSource() : string{
-            return $this->source;
-        }
-
         public function getPath() : string{
             return $this->path;
         }
@@ -48,28 +35,30 @@
             return $this->index;
         }
 
-        public function getrealId() : string{
+        public function getRealId() : string{
             return $this->realId;
+        }
+
+        public function getTaskId() : string{
+            return $this->TaskId;
         }
 
         public function toArray() : array{
             return array(
-                CrawledText::GLOBALID_REF => $this->globalId,
                 CrawledText::TEXT_REF => $this->text,
-                CrawledText::SOURCE_REF => $this->source,
                 CrawledText::PATH_REF => $this->path,
                 CrawledText::INDEX_REF => $this->index,
                 CrawledText::REALID_REF => $this->realId,
+                CrawledText::TASKID_REF => $this->taskId
             );
         }
 
         public static function fromArray(array &$attributes){
             return new Waterbottle(
-                $attributes[CrawledText::GLOBALID_REF],
                 $attributes[CrawledText::TEXT_REF],
-                $attributes[CrawledText::SOURCE_REF],
                 $attributes[CrawledText::PATH_REF],
                 $attributes[CrawledText::INDEX_REF],
-                $attributes[CrawledText::REALID_REF]);
+                $attributes[CrawledText::REALID_REF],
+                $attributes[CrawledText::TASKID_REF]);
         }
     }
