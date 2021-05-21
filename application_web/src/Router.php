@@ -19,7 +19,7 @@
         const TASK_LIST = 'taskList';
         const EXECUTE = 'execute';
         const INSERT = 'insert';
-        const IMPORT = 'import';
+        const EXPORT = 'export';
         const ABOUT = 'about';
         const PATH_DELIMITER = '/';
 
@@ -59,8 +59,12 @@
                     case Router::CRAWLER_LIST:
                         $controller->showHome();
                         break;
-                    case Router::IMPORT:
-                        $controller->showSources();
+                    case Router::EXPORT:
+                        if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                            $controller->showSources();
+                        }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                            $controller->dumpDatabase($_POST['taskIdExport']);
+                        }
                         break;
                     case Router::ABOUT:
                         $controller->showAbout();
@@ -101,8 +105,12 @@
                     case Router::CRAWLER_LIST:
                         $controller->showCrawlers();
                         break;
-                    case Router::IMPORT:
-                        $controller->showSources();
+                    case Router::EXPORT:
+                        if($_SERVER['REQUEST_METHOD'] === 'GET'){
+                            $controller->showSources();
+                        }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                            $controller->dumpDatabase($_POST['taskIdExport']);
+                        }
                         break;
                     case Router::ABOUT:
                         $controller->showAbout();
@@ -173,9 +181,9 @@
             return $this->getCrawlerURL($crawlerID).Router::PATH_DELIMITER.Router::INSERT;
         }
 
-        public function getImportURL(): string
+        public function getExportURL(): string
         {
-            return $this->getFileURL().Router::PATH_DELIMITER.Router::IMPORT;
+            return $this->getFileURL().Router::PATH_DELIMITER.Router::EXPORT;
         }
 
         public function getAboutURL() : string

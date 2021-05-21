@@ -12,6 +12,7 @@
 
         private $createBatch;
         private $getLastKnownData;
+        private $readAllAssociatedData;
 
         public function __construct(PDO &$db){
             parent::__construct($db, 'crawledtext', 'globalid');
@@ -19,6 +20,8 @@
             $this->createBatch = $db->prepare('DELETE FROM session WHERE '.Session::TOKEN_REF.'=:token');
             //select realid from crawledtext where id = (select MAX(id) from crawledtext where taskId = 1);
             $this->getLastKnownData = $db->prepare('SELECT '.CrawledText::REALID_REF.' FROM crawledtext WHERE id = ( SELECT MAX(id) FROM crawledtext WHERE '.CrawledText::TASKID_REF.'=:taskid' .')');
+            //select id from crawledtext where taskid = '4';
+            $this->readAllAssociatedData = $db->prepare('SELECT * FROM crawledtext WHERE '.CrawledText::TASKID_REF.' =:taskid');
         }
 
         public function read($id) : CrawledText{
@@ -39,6 +42,17 @@
             $this->getLastKnownData->execute(array(':taskid' => $taskId));
             $attribut = $this->getLastKnownData->fetch(PDO::FETCH_ASSOC);
             return $attribut;    
+        }
+        
+        public function readAllAssociatedData($taskId){
+            $this->readAllAssociatedData->execute(array(':taskid' => $taskId));
+            $datumAttributes = $this->readAllAssociatedData->fetchAll(PDO::FETCH_ASSOC);
+            $datum = [];
+            foreach($datumAttributes as $dataAttributes){
+                $datum[] = $dataAttributes;
+            }
+            return $datum;
+
         }
 
         public function create(CrawledText &$obj){

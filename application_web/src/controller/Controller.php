@@ -61,6 +61,8 @@
                 //TODO: Faire affichage correct avec bootstrap : V
                 //TODO: faire authentification avec token : ~ (verifier avec API)
 
+                //Note: tout ce qui utilise .....Storage devrait etre remplace par un appel API.
+
                 //TODO: Si en avance : Permettre de se connecter a l'API pour transmettre une session en cours sur autre ordinateur local.
                 //Cela requirerait de mettre un dossier cache sur le serveur pour chaque session en cours
                
@@ -158,13 +160,29 @@
                 $limit = $task->getLimit();
                 $args = array($source, $taskId, $entrypoint, $lastDataProgression, $limit);
 
+                //Peut-etre mettre un prefixe commande pour eviter les maux de tete.
+
                 //Si ordinateur utilisant windows:
                 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    $command = "start /b " . $script_path . " " . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1';
-                    //Note : Cela suppose qu'il existe un moyen d'associer les fichiers .py a python, ce qui est normalement fait par defaut lors de l'installation de celui-ci sur windows.
+                    //TODO: Ajouter attribut Program_Name a la table crawler au lieu de faire ce switch qui ne prends en compte que les taches definies au debut.
+                    switch ($crawlerId) {
+                        case 1:
+                            $program_name = 'python';
+                            break;
+                        case 2:
+                            $program_name = 'node';
+                            break;
+                        case 3:
+                            $program_name = 'python';
+                            break;
+                    }
+                    $command = "start /b " . $program_name . ' ' .$script_path . ' ' . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1';
+                    
+
+
                 }
                 else{
-                    $command = $script_path . " " . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1 &';
+                    $command = $script_path . ' ' . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1 &';
                 }
                 exec($command);
                 $tempIndex = $tempIndex + 1;            
@@ -371,10 +389,6 @@
                 $this->sessionStorage->deleteFromToken($local_session_data["sessionId"]);
                 //Effacer le fichier session local
                 unlink('cache/local_session_info.json');
-
-
-                
-
                 $this->view->makeInsertionCompletePage();
 
             }
@@ -386,10 +400,7 @@
         }
         public function showSources(){
             //TODO: Refaire avec connection API
-            //Pour chaque tache possible:
             $tasks = $this->taskStorage->readEverything();
-            //Faire array source => entrypoint
-            //var_dump($tasks);
 
             $sourceArray = array();
             $tempIndex = 0;
@@ -399,36 +410,18 @@
             }
             unset($tempIndex);
 
-
-            //valeurs bidon pour exemple:
-            $bidon11 = array('Discord', 'Fake/path/discord/serveurArt');
-            $bidon12 = array('Discord', 'Fake/path/discord/serveurUniv');
-            $bidon21 = array('Quora', 'Fake/path/quora/FAQArt');
-            $bidon22 = array('Quora', 'Fake/path/quora/FAQPolitique');
-            $bidon31 = array('Reddit', 'Fake/path/reddit/art');
-            $bidon32 = array('Reddit', 'Fake/path/reddit/france');
-
-            $bidon = array($bidon11,$bidon12,$bidon21,$bidon22,$bidon31,$bidon32);
-
-
             $this->view->makeSourceListPage($sourceArray);
 
         }
 
 
-        public function dumpDatabase(){
-            //TODO:
-            //Verifier si requete valide
+        public function dumpDatabase($taskId){
+            //TODO: Refaire en utilisant API et non table locale.
+            $dataList = $this->crawledTextStorage->readAllAssociatedData($taskId);
+            file_put_contents('cache/tache'.$taskId.'Export.json', json_encode($dataList));
 
-                //Essayer de lire depuis bDD:
-
-                    //mettre cela quelque part et rediriger vers page de succes
-
-                //Sinon, mettre page erreur
-
-                
-            //Si invalide, redirection vers la page d'extraction, en indiquant pourquoi la requete est invalide.
-            
+            //Sinon : mettre page erreur
+            $this->view->makeExportationCompletePage();            
         }
 
 

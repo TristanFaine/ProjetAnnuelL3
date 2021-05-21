@@ -1,11 +1,72 @@
 #!/usr/bin/env node
 //Necessite d'installer le module discord.js
+
 const Discord = require('discord.js');
 const fs =require('fs');
 const { prefix, token } = require('./config.json');
 
+/* Importation d'arguments:
+On envoie tout les arguments en une seule liste => process.argv[2] = args
+Position des arguments envoyees par la telecommande:
+args[0] = Type de source
+args[1] = id de tache
+args[2] = Point d'entree de la tache (ici : nom de subreddit)
+args[3] = Identifiant de la derniere donnee connue dans la BDD (ou contenu, si identifiant n'existe pas)
+args[4] = limite de donnees a recuperer (ici : X commentaires)
+
+Structure d'une donnee: Text|Path|Index|realID
+*/
+args = JSON.parse(process.argv[2]);
+
+script_dir = process.cwd();
+cache_path = "cache/Tache" + args[1]
+rel_path = script_dir + "/" + cache_path;
+console.log(rel_path);
+
+
+
 //Creation d'une nouvelle session
 const client = new Discord.Client();
+
+
+
+//Action de log sur Log.
+fs.watch(rel_path + 'Log.json', (eventType, filename) => {
+  console.log("\nThe file", filename, "was modified!");
+  console.log("The type of change was:", eventType);
+});
+
+
+process.exit();
+//TODO: mettre un watchdog sur fichier kill et pause
+//https://www.geeksforgeeks.org/node-js-fs-watch-method/
+//Utiliser fs.watch()
+//TODO: Differencier actions selon attribut status de log
+//TODO: Ecrire dans le log toutes les 5 secondes ou autre.
+//https://stackoverflow.com/questions/30971288/how-to-read-a-json-file-in-my-node-js-app
+//Ouvrir fichier log
+var interval = setInterval(function(){ 
+  fs.readFile('cache/Tache2Log.json', 'utf8', function (err, data) {
+    if (err) {
+      // TODO: Prendre en compte l'erreur
+      console.log("Erreur lors de la lecture du log")
+      return;
+    }
+  
+    jsonData = JSON.parse(data);
+
+
+    console.log(jsonData.status);
+  });
+}, 500);
+
+
+//Faire ceci quand on a besoin d'arreter le logging
+setTimeout(function() { 
+  clearInterval(interval); 
+}, 800);
+
+
 
 //Action unique lors du demarrage du bot
 client.once('ready', () => {
@@ -87,7 +148,9 @@ client.once('ready', () => {
     var json = JSON.stringify(scrapped_data);
     fs.writeFile('discord_data.json', json, 'utf8', function (err) {
       if (err) return console.log(err);
-      console.log("Fin du scrapping, vous pouvez quitter ce programme en faisant CTRL+C")
+      console.log("Fin du scrapping, vous pouvez quitter ce programme en faisant CTRL+C");
+      process.exit();
+
     });
 
   };

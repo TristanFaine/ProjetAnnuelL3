@@ -215,6 +215,17 @@ observer.join()
 with open(rel_path + "Data.json","w") as f:
     json.dump(comment_dict_list,f)
 
+#TODO: Mettre a jour le fichier session dans cache global
+#Note : chemin est normalement ../../../cache/local_session_info.json
+#Il faudrait que je modifie l'emplacement de celui-ci car il n'est pas dans src.
+#Cela depend de l'emplacement de ce fichier.
+#session_file = open(rel_path + "Log.json", 'r+')
+#session_data = json.load(log_file)
+#recuperer l'index selon attribut taskIdArray
+#remplacer attribut taskStatusArray correspondant
+#session_file.close()
+
+
 #Garantir un affichage correct lors de la fin d'execution du script.
 time.sleep(5)
 if kill_event.is_set():

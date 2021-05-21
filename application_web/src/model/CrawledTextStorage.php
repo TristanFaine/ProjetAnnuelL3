@@ -14,6 +14,8 @@
 
         public function getLastKnownData($taskId);
 
+        public function readAllAssociatedData($taskId);
+
         public function read($globalId) : CrawledText;
 
         public function readAll(int $length=-1, int $n=0) : array;

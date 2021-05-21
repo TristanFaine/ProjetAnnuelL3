@@ -54,7 +54,7 @@
         }
 
         public static function fromArray(array &$attributes){
-            return new Waterbottle(
+            return new CrawledText(
                 $attributes[CrawledText::TEXT_REF],
                 $attributes[CrawledText::PATH_REF],
                 $attributes[CrawledText::INDEX_REF],

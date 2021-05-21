@@ -20,7 +20,7 @@
             return array(
                 "Acceuil" => $this->router->getHomeURL(),
                 "Selectionner un crawler" => $this->router->getCrawlerListURL(),
-                "Interroger la BDD" => $this->router->getImportURL(),
+                "Interroger la BDD" => $this->router->getExportURL(),
                 "À propos" => $this->router->getAboutURL()
             );
 
@@ -33,7 +33,7 @@
         $this->title = 'Acceuil: Application Crawler Incremental';
         $this->content = '<h1>Page d\'acceuil de crawler incremental, aucune session detectee.</h1>';
         $this->content .= '<h2><a href="' .$this->router->getCrawlerListURL(). '">Cliquer ici pour selectionner un crawler</a></h2>';
-        $this->content .= '<h2><a href="' .$this->router->getImportURL(). '">Cliquer ici pour recuperer des donnees deja crawlees</a></h2>';
+        $this->content .= '<h2><a href="' .$this->router->getExportURL(). '">Cliquer ici pour recuperer des donnees deja crawlees</a></h2>';
 
     }
 
@@ -81,14 +81,14 @@
     public function makeTaskListPage(array &$tasks, $source){
         //TODO: Ameliorer l'UI en indiquant les infos sur le crawler actuel.
         $this->title = 'Liste des tâches disponibles';
-        $this->content = '<p>Liste des tâches disponibles, veuillez selectionner celles que vous voulez executer:</p>';
-        $this->content .= '<p>Le crawler choisi va crawl le service : ' . $source . '</p>';
+        $this->content = '<p id="instructions_util" class="lead">Liste des tâches disponibles, veuillez selectionner celles que vous voulez executer:</p>';
+        $this->content .= '<p id="info_source">Le crawler choisi va crawl le service : ' . $source . '</p>';
         $this->content .= '<form method="post" action = "'.htmlspecialchars($_SERVER["PHP_SELF"]) . '">';
         foreach($tasks as $id => $task) {
             $this->content .= '<div class="form-check">';
             //"<tr><td> Tache n°" .$task->getId()." </td>";
             $this->content .= '<input class="form-check-input" type="checkbox" name = "taskIdArray[]" value="'.$task->getId().'" id = "taskCheckbox' . $task->getId() . '">';
-            $this->content .= '<label class="form-check-label" for="flexCheckDefault"> Tache n°' . $task->getId() .' statut : '.$task->getStatus().', point d\'entree : '.$task->getEntry(). ', derniere execution le '. date('m/d/Y h:i:s a',$task->getEndDate()) . '</label>';
+            $this->content .= '<label class="form-check-label" for="taskCheckbox' . $task->getId() . '"> Tache n°' . $task->getId() . ' | point d\'entree : '.$task->getEntry(). ' | limite de crawl : '.$task->getLimit(). ' donnees | derniere execution le '. date('m/d/Y h:i:s a',$task->getEndDate()) . '</label>';
             $this->content .= '</div>';
         }
 
@@ -106,6 +106,10 @@
 
     public function makeDataInsertionPage($crawlerId) {
         $local_session_data = json_decode(file_get_contents("cache/local_session_info.json"), true);
+        //TODO: Rajouter des infos pour l'utilisateur
+        //Par exemple : nombre de donnees
+        //Execution interrompue par rencontre de donnees deja connue
+        //Execution interrompue par utilisateur
 
         $this->title = 'Confirmation d\'insertion';
         
@@ -114,7 +118,7 @@
         $this->content .= '<br/>Alors veuillez cliquer sur le bouton "Insertion" ci-dessous. </div>';
 
         $this->content .= '<form action="'.$this->router->getInsertURL($crawlerId).'", method="post">'.
-                    '<label><button type="submit">Confirmer</button></label></form>';
+                    '<label><button type="submit">Insertion</button></label></form>';
 
         
         
@@ -124,44 +128,48 @@
         $this->title = 'Insertion reussie';
         $this->content = '<p id="instructions_util">Insertion reussie, vous pouvez maintenant quitter le navigateur, ou faire une nouvelle action.</p>';
         $this->content .= '<h2><a href="' .$this->router->getHomeURL(). '">Cliquer ici pour revenir sur la page d\'acceuil</a></h2>';
-
     }
-    //Actions liees a l'importation de donnees:
+
+    
+
+
+
+    //Actions liees a l'exportation de donnees:
 
     public function makeSourceListPage(array &$sources){
 
-        //Affichage de format "Tache X : Source/EntryPoint
+        //Affichage de format "Crawler X | Tache Y  | PointEntree X
         $this->title = 'Liste des sources disponibles';
         $this->content .= '<h4 class="display-4">Veuillez selectionner une source de donnees: </h4>';
         
-        $this->content .= '<ul>';
-
         
-    //TODO:Remplacer cette etape par un appel a l'API, ou ajouter un attribut a objet tache, ou faire depuis un fichier de configuration externe.     
+    //TODO:Remplacer cette etape par un appel a l'API, ou ajouter un attribut a objet tache, ou faire depuis un fichier de configuration externe.
+        $this->content .= '<form method="post" action = "'.htmlspecialchars($_SERVER["PHP_SELF"]) . '">';
         foreach($sources as $id => $source) {
-            $this->content .= '<li>';
-            
+            $this->content .= '<div class="form-check">';
+            $this->content .= '<input class="form-check-input" type="radio" name = "taskIdExport" value="'.$source[1].'" id = "taskCheckbox' . $source[1] . '">';
             switch ($source[0]) {
                 case 1:
-                    $this->content .= 'Crawler du site reddit.com' . ' | Tache : ' . $source[1] . ' | Point d\'entree: reddit.com/r/' . $source[2];
+                    $this->content .= '<label class="form-check-label" for="taskCheckbox' . $source[1] . '"> Crawler du site reddit.com' . ' | Tache : ' . $source[1] . ' | Point d\'entree: reddit.com/r/' . $source[2] . '</label>';
                     break;
                 case 2:
-                    $this->content .= 'Crawler du logiciel Discord' . ' | Tache : ' . $source[1] . ' | Point d\'entree: ' . $source[2];
+                    $this->content .= '<label class="form-check-label" for="taskCheckbox' . $source[1] . '"> Crawler du logiciel Discord' . ' | Tache : ' . $source[1] . ' | Point d\'entree: '. $source[2] . '</label>';
                     break;
 
                 case 3:
-                    $this->content .= 'Crawler du site quora.com' . ' | Tache : ' . $source[1] . ' | Point d\'entree: ' . $source[2];
+                    $this->content .= '<label class="form-check-label" for="taskCheckbox' . $source[1] . '"> Crawler du site quora.com' . ' | Tache : ' . $source[1] . ' | Point d\'entree: ' . $source[2] . '</label>';
                     break;
                 }
-            
-            $this->content .= '</li>';
+            $this->content .= '</div>';   
         }
-        $this->content .= '</ul>';
-
-        //TODO: Faire bouton pour confirmer => appel API => redirection succes
+        $this->content .= "<input type='submit' class='btn btn-primary' value='Envoyer'> </form>";
     }
 
-
+    public function makeExportationCompletePage(){
+        $this->title = 'Exportation reussie';
+        $this->content = '<p id="instructions_util">Exportation reussie, vous pouvez maintenant quitter le navigateur, ou faire une nouvelle action.</p>';
+        $this->content .= '<h2><a href="' .$this->router->getHomeURL(). '">Cliquer ici pour revenir sur la page d\'acceuil</a></h2>';
+    }
 
 
     //Pages annexes
