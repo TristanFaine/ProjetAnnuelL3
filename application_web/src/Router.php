@@ -60,12 +60,7 @@
                         $controller->showHome();
                         break;
                     case Router::EXPORT:
-                        if($_SERVER['REQUEST_METHOD'] === 'GET'){
-                            $controller->showSources();
-                        }else if($_SERVER['REQUEST_METHOD'] === 'POST'){
-                            $controller->dumpDatabase($_POST['taskIdExport']);
-                        }
-                        break;
+                        $controller->showSources();
                     case Router::ABOUT:
                         $controller->showAbout();
                         break;

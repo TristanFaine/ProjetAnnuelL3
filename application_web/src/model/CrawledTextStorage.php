@@ -10,8 +10,6 @@
         
         public function create(CrawledText &$crawledText); //return $globalId
 
-        public function createBatch(&$jsonData);
-
         public function getLastKnownData($taskId);
 
         public function readAllAssociatedData($taskId);

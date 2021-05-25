@@ -115,7 +115,7 @@
                 $cache_path = "src/crawlers/crawler_".$source."/cache";
 
 
-                $JSLogic = '<div id="container">';
+                $JSLogic = '<div id="taskContainer" class="list-group">';
                 $JSLogic .= '<script>
                 //Preparation de valeurs communes aux taches (Id, source, chemin du cache)
                 var taskIdArray = [];
@@ -160,7 +160,7 @@
                 $limit = $task->getLimit();
                 $args = array($source, $taskId, $entrypoint, $lastDataProgression, $limit);
 
-                //Peut-etre mettre un prefixe commande pour eviter les maux de tete.
+
 
                 //Si ordinateur utilisant windows:
                 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -176,13 +176,23 @@
                             $program_name = 'python';
                             break;
                     }
-                    $command = "start /b " . $program_name . ' ' .$script_path . ' ' . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1';
+                    $command = "start /b " . $program_name . ' ' .$script_path . ' ' . escapeshellarg(json_encode($args)) . ' ' .
+                    escapeshellarg($taskId) . ' ' .
+                    escapeshellarg($entrypoint) .' ' .
+                    escapeshellarg($lastDataProgression) . ' ' .
+                    escapeshellarg($limit) . ' ' .
+                    '> ' . $error_log_path . ' 2>&1';
                     
 
 
                 }
                 else{
-                    $command = $script_path . ' ' . escapeshellarg(json_encode($args)) . ' > ' . $error_log_path . ' 2>&1 &';
+                    $command = $script_path . ' ' . escapeshellarg($source) . ' ' .
+                    escapeshellarg($taskId) . ' ' .
+                    escapeshellarg($entrypoint) .' ' .
+                    escapeshellarg($lastDataProgression) . ' ' .
+                    escapeshellarg($limit) . ' ' .
+                    '> ' . $error_log_path . ' 2>&1 &';
                 }
                 exec($command);
                 $tempIndex = $tempIndex + 1;            
@@ -192,7 +202,7 @@
                 $JSLogic .= '
                 <script>
                 //Fonction pour afficher la progression des taches:
-                var containerDiv = document.getElementById("container");
+                var containerDiv = document.getElementById("taskContainer");
                 var pauseToggleValue = 0
                 
                 //Affichage de la progression des taches:
@@ -243,13 +253,13 @@
                                 case 0:
                                     switch (pauseToggleValue) {
                                         case 0:
-                                            document.getElementById("pauseButton").firstChild.textContent = "Cliquer ici pour relancer les crawlers";
+                                            document.getElementById("pauseButton").firstChild.textContent = "Reprise";
                                             document.getElementById("pauseButton").classList.remove("btn-primary");
                                             document.getElementById("pauseButton").classList.add("btn-secondary");
                                             pauseToggleValue = 1 - pauseToggleValue;
                                             break;
                                         case 1:
-                                            document.getElementById("pauseButton").firstChild.textContent = "Cliquer ici pour mettre en pause les crawlers";
+                                            document.getElementById("pauseButton").firstChild.textContent = "Pause";
                                             document.getElementById("pauseButton").classList.remove("btn-secondary");
                                             document.getElementById("pauseButton").classList.add("btn-primary");
                                             pauseToggleValue = 1 - pauseToggleValue;
@@ -276,17 +286,22 @@
                     //Creation du fichier log.
                     $tempfile = $cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.json";
                     if(!is_file($tempfile)){
-                        file_put_contents($cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.json","{\"status\": 2}");
+                        file_put_contents($tempfile, '{"status": 2}');
+                    }
+                    $tempfile = $cache_path.Router::PATH_DELIMITER."Tache".$taskId."Data.json";
+                    if(!is_file($tempfile)){
+                        file_put_contents($tempfile, ' ');
                     }
                     
-                    $JSLogic .= "<div class='task" . $taskId . "Progress'></div>";
+                    //
+                    $JSLogic .= "<div class='task" . $taskId . "Progress list-group-item'></div>";
                     $JSLogic .= '
                     <script>   
                         taskIdArray.push(' . $taskId . ');
                         taskIdArrayCopy.push(' . $taskId . ');
                     </script>';
                 }
-                //Closing div "container"
+                //Closing div "taskContainer"
                 
                 $JSLogic .= "</div>";
                 $JSLogic .= '
@@ -296,10 +311,13 @@
                 setTimeout(function(){ XHRLogSearch(); }, 3000);
                 
                 </script>';
-                $JSLogic .= '<div id="buttonContainer" class="btn-group-vertical">';
-                $JSLogic .= '<button id="pauseButton" class="crawlerActionButton btn btn-primary" type="button" onclick="actionCrawler(0)">Cliquer ici pour mettre en pause les crawlers</button>';
-                $JSLogic .= '<button id="killButton" class="crawlerActionButton btn btn-danger" type="button btn-danger" onclick="actionCrawler(1)">Cliquer ici pour arreter les crawlers, et garder une trace de leur progression</button>';
-                $JSLogic .= '</div>';
+                $JSLogic .= '<button id="pauseButton" class="btn btn-primary me-2" type="button" onclick="actionCrawler(0)">Pause</button>';
+                $JSLogic .= '<button id="killButton" class="btn btn-danger me-2" type="button" onclick="actionCrawler(1)">Arret</button>';
+                
+                //Fermeture du div "container"
+                $JSLogic .= "</div>";
+               
+
                 //On met les tag script et autre dans la vue:
                 $this->view->makeTaskExecutionPage($JSLogic);
             } else {
@@ -420,7 +438,24 @@
             $dataList = $this->crawledTextStorage->readAllAssociatedData($taskId);
             file_put_contents('cache/tache'.$taskId.'Export.json', json_encode($dataList));
 
+            //au lieu de faire file put contents... faire readfile.
+            //sauf que c'est pas un fichier a l'origine. hmm.
+
+            //Sur serveur a distance : L'api produit le fichier dans un dossier cache et l'efface apres.
+
+            //ici : Pour simuler cela, on cree dans le cache et on remet dans readfile. pas tres joli mais bon.
+
+
+            //https://www.media-division.com/php-download-script-with-resume-option/
+            //licence BSD mais tout de meme je credite.
+
+            
+
             //Sinon : mettre page erreur
+
+
+
+            
             $this->view->makeExportationCompletePage();            
         }
 

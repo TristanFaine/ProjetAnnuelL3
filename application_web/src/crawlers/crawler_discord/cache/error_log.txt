@@ -1,21 +1,3 @@
-2
-node:internal/fs/watchers:252
-    throw error;
-    ^
-
-Error: ENOENT: no such file or directory, watch 'cache/Tache2Log.json'
-    at FSWatcher.<computed> (node:internal/fs/watchers:244:19)
-    at Object.watch (node:fs:1610:34)
-    at Object.<anonymous> (/home/twiswan/Universite/Projet/ProjetAnnuelL3/application_web/src/crawlers/crawler_discord/fetch.js:31:4)
-    at Module._compile (node:internal/modules/cjs/loader:1108:14)
-    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1137:10)
-    at Module.load (node:internal/modules/cjs/loader:988:32)
-    at Function.Module._load (node:internal/modules/cjs/loader:828:14)
-    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:76:12)
-    at node:internal/main/run_main_module:17:47 {
-  errno: -2,
-  syscall: 'watch',
-  code: 'ENOENT',
-  path: 'cache/Tache2Log.json',
-  filename: 'cache/Tache2Log.json'
-}
+Ready to scrap!
+0
+INFO: Arret du programme car tache deja effectuee avec succes

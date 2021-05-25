@@ -10,14 +10,12 @@
 
     class CrawledTextPostgreSQL extends AbstractDataBaseStorage implements CrawledTextStorage{
 
-        private $createBatch;
         private $getLastKnownData;
         private $readAllAssociatedData;
 
         public function __construct(PDO &$db){
             parent::__construct($db, 'crawledtext', 'globalid');
             //TODO: find a way to insert properly
-            $this->createBatch = $db->prepare('DELETE FROM session WHERE '.Session::TOKEN_REF.'=:token');
             //select realid from crawledtext where id = (select MAX(id) from crawledtext where taskId = 1);
             $this->getLastKnownData = $db->prepare('SELECT '.CrawledText::REALID_REF.' FROM crawledtext WHERE id = ( SELECT MAX(id) FROM crawledtext WHERE '.CrawledText::TASKID_REF.'=:taskid' .')');
             //select id from crawledtext where taskid = '4';
@@ -56,25 +54,6 @@
         }
 
         public function create(CrawledText &$obj){
-            return $this->createObj($obj);
-        }
-
-        public function createBatch(&$jsonData){
-            //On recoit un String json convertit en objet generique stdclass
-            ////https://stackoverflow.com/questions/931407/what-is-stdclass-in-php
-            
-            //TODO: Diviser fichier json en array contenant 999 valeurs chacune
-            $postgresMAXINSERT = 999;
-
-            foreach ($jsonData as $dataObject) {
-                echo $dataObject->text;
-                    //$this->deleteFromToken->execute(array(':token' => $token));
-                
-            }
-            
-
-            //Pour chaque partie de l'array, faire insertion
-            //$this->createBatch->execute(array(':token' => $token));
             return $this->createObj($obj);
         }
 

@@ -16,26 +16,21 @@ except ImportError:
 
 import sys, os, threading, time
 
-try:
-    args = json.loads(sys.argv[1])
-except:
-    print("ERROR : Aucun argument n'a ete envoye vers ce script, ou les arguments n'ont pas ete interprete correctement.")
-    sys.exit(1)
-
 script_dir = os.path.dirname(__file__)
-cache_path = "cache/Tache" + args[1]
+cache_path = "cache/Tache" + sys.argv[2]
 rel_path = os.path.join(script_dir, cache_path)
 
 #Position des arguments envoyees par la telecommande:
-#args[0] = Type de source
-#args[1] = id de tache
-#args[2] = Point d'entree de la tache (ici : nom de subreddit)
-#args[3] = Identifiant de la derniere donnee connue dans la BDD (ou contenu, si identifiant n'existe pas)
-#args[4] = limite de donnees a recuperer (ici : X commentaires)
+#Note : les arguments sont supposes etre tous etre en String en avance, pour raison de securite, a cause d'echappement shell.
+#sys.argv[1] = Type de source
+#sys.argv[2] = id de tache
+#sys.argv[3] = Point d'entree de la tache (ici : nom de subreddit)
+#sys.argv[4] = Identifiant de la derniere donnee connue dans la BDD (ou contenu, si identifiant n'existe pas)
+#sys.argv[5] = limite de donnees a recuperer (ici : X commentaires)
 #Structure d'une donnee: Text|Path|Index|realID
 
 reddit = praw.Reddit(client_id='ScN-UpZfhge5Gg', client_secret='qHpUqtbrlboH1iEla69J9PuFGZZZqA', user_agent='ScrapperFR')
-subreddit = args[2]
+subreddit = sys.argv[3]
 post_list = []
 comment_dict_list = []
 comment_dict = {}
@@ -47,7 +42,7 @@ log_file = open(rel_path + "Log.json", 'r+')
 log_data = json.load(log_file)
 log_file.close()
 
-#Evenements externes:
+#Prise en compte d'evenements externes:
 log_stop_event = threading.Event()
 kill_event = threading.Event()
 pause_event = threading.Event()
@@ -92,6 +87,7 @@ def logtoFile(log_stop_event):
 
 if log_data['status'] == 0:
     #Ne rien faire car tache deja finie.
+    print("INFO: Arret du programme car tache deja effectuee avec succes")
     observer.stop()
     observer.join()
     exit()
@@ -115,7 +111,9 @@ elif log_data['status'] == 1:
         #Recherche en largeur des commentaires, on en extrait le corps.
         comment_index = 1
         for comment in submission.comments.list():
-            if args[3] == comment.id:
+            if sys.argv[4] == comment.id:
+                print("RENCONTRE D'UNE DONNEE DEJA CONNUE, ARRET DU CRAWL")
+                print("DONNEE EST ", comment.id)
                 incremental_end_event.set()
                 CrawlerUpToDate = True
                 break
@@ -127,7 +125,7 @@ elif log_data['status'] == 1:
                 comment_dict['index'] = comment_index
                 comment_dict['realID'] = comment.id
                 progressId = comment.id
-                comment_dict['taskID'] = args[1]
+                comment_dict['taskID'] = sys.argv[2]
                 comment_dict_list.append(comment_dict)
                 comment_index = comment_index + 1
             if lastId == comment.id:
@@ -135,8 +133,8 @@ elif log_data['status'] == 1:
 
 
 
-        if local_index > args[4]:
-            print("LIMIT WAS : ", args[4], "CURRENT AMOUNT IS : ", local_index)
+        if local_index > int(sys.argv[5]):
+            print("LIMIT WAS : ", sys.argv[5], "CURRENT AMOUNT IS : ", local_index)
             break
         
         while pause_event.is_set():
@@ -154,6 +152,9 @@ elif log_data['status'] == 1:
             break
 
 elif log_data['status'] == 2:
+    #Note: Il est surement possible d'ameliorer largement la lisibilite du programme en mettant juste
+    #le code pour status == 1 et faire : CrawlerUpToDate = True et en faisant des try log_data['attribut']
+
     #Premier lancement de crawl
     local_index = 0
     progressId = ''
@@ -167,7 +168,7 @@ elif log_data['status'] == 2:
         #Recherche en largeur des commentaires, on en extrait le corps.
         for comment in submission.comments.list():
             #Si detection du meme commentaire qu'indique dans la BDD, alors on arrete le crawling
-            if args[3] == comment.id:
+            if sys.argv[4] == comment.id:
                 print("RENCONTRE D'UNE DONNEE DEJA CONNUE, ARRET DU CRAWL")
                 print("DONNEE EST ", comment.id)
                 incremental_end_event.set()
@@ -178,13 +179,13 @@ elif log_data['status'] == 2:
             comment_dict['index'] = comment_index
             comment_dict['realID'] = comment.id
             progressId = comment.id
-            comment_dict['taskID'] = args[1]
+            comment_dict['taskID'] = sys.argv[2]
             comment_dict_list.append(comment_dict)
             comment_index = comment_index + 1
             local_index = local_index + 1
 
-        if local_index > args[4]:
-            print("LIMIT WAS : ", args[4], "CURRENT AMOUNT IS : ", local_index)
+        if local_index > int(sys.argv[5]):
+            print("LIMIT WAS : ", sys.argv[5], "CURRENT AMOUNT IS : ", local_index)
             break
         
         while pause_event.is_set():
