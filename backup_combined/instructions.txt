@@ -1,0 +1,14 @@
+Cette application Web PHP est une "telecommande" permettant d'interroger une base de donnees a distance, et d'appeler des crawlers depuis l'ordinateur de l'utilisateur pour pouvoir extraire des donnees.
+
+Dans ce cas "local", elle n'utilise pas d'API a distance, et communique donc directement avec une base de donnees presente sur la machine de l'utilisateur, et peut etre techniquement elle-meme utilisee comme une API.
+Veuillez cependant considerer que cela peut amener a une utilisation elevee d'un serveur.
+
+Si vous voulez utiliser cette application dans ces conditions veuillez penser a modifier le dossier config, le fichier index.php  qui depend de ce dossier config, et a installer les dependences necessaires comme dans un cas normal d'utilisation:
+
+L'interface utilise php.
+Les crawlers utilisent Python, node.js, et explicitement les librairies et modules suivants :
+
+Python: praw, watchdog, sys, os, threading, time, urllib, requests, BeautifulSoup, selenium
+Node.js: discord.js
+
+Si vous ne disposez pas de votre propre serveur, vous pouvez utiliser le serveur web interne de PHP pour utiliser cette application: php -S 127.0.0.1:8000

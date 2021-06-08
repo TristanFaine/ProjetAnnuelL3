@@ -1,0 +1,10 @@
+Ce fichier session contient ces informations:
+sessionId : identifiant de session pour une connection a l'API.
+crawlerId : Numero d'identifiant du type de crawler utilise lors de la session
+crawlerSource: Type de source associe a ce crawler.
+taskIdArray : Liste d'identifiants des taches associees a ce crawler
+taskStatusArray : Liste de "status" des taches associees a ce crawler (0 = succes, 1 = en cours, 2 = pas encore execute)
+taskLastData : Liste contenant la derniere donnee "recuperee" de ce crawler, pour permettre d'ignorer celles
+
+firstDate : Date de la demarrage de cette session
+lastDate : Date de la derniere utilisation de cette session

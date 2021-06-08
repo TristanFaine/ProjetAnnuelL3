@@ -1,0 +1,19 @@
+Ce scrapper s'utilise avec un bot discord, ceux-ci sont configurables a cette adresse : https://discord.com/developers/applications/
+
+Cette methode de scrapping possede donc quelques limitations, seules les donnees a la portee du bot sont disponibles, il faut d'abord inviter le bot dans un serveur avant de pouvoir recuperer les donnees de celui-ci.
+
+Un token utilisable est "XXX2Nzk5MzUzMzQzMzc3NDQ5.YGRu5w.EkY6l77kTBcl6nnaQ1RgTlzXYiY".
+En remplacant XXX par ODI.
+
+Il serait préférable d'utiliser votre propre bot, vous pouvez sélectionner un robot en changeant la valeur "token" du fichier config.json.
+
+
+Instructions:
+
+-   Dans le dossier contenant index.js :"npm install discord.js" pour utiliser le module discord.js, et initialiser le dossier node_modules
+
+-   Faites ensuite la commande node fetch.js pour utiliser le robot.
+
+
+Notes en cours de projet :
+- Forcer l'arret de node quand le scrapping est termine.

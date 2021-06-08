@@ -1,7 +1,7 @@
 Cette application Web PHP est une "telecommande" permettant d'interroger une base de donnees a distance, et d'appeler des crawlers depuis l'ordinateur de l'utilisateur pour pouvoir extraire des donnees.
-Pour cela, elle utilise une API hebergee sur les serveurs de l'universite de Caen.
+Pour stocker ces donnees, elle communique avec une API a distance.
 
-Si vous ne disposez pas de votre propre serveur, vous pouvez utiliser le serveur web interne de PHP pour utiliser cette application: php -S 127.0.0.1:8000
+Si vous ne disposez pas de votre propre serveur local pour utiliser l'interface,, vous pouvez utiliser le serveur web interne de PHP : php -S 127.0.0.1:8000
 
 Les 2 actions possibles sont celles-ci:
 Selectionner un crawler -> Choisir une tache (ou plusieurs) -> Effectuer cette tache en local, en permettant de pauser celle-ci si necessaire -> Envoyer les resultats JSON vers une base de donnees.
