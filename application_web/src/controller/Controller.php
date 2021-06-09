@@ -1,26 +1,26 @@
 <?php
     require_once('Router.php');
     require_once('view/View.php');
-    require_once('model/CrawlerStorage.php');
-    require_once('model/TaskStorage.php');
-    require_once('model/SessionStorage.php');
 
     class Controller{
         private $view;
-        private $crawlerStorage;
-        private $taskStorage;
-        private $sessionStorage;
-        private $crawledTextStorage;
-        
 
-        
-        //TODO: Enlever appels vers base de donnees, vu qu'on utilise une API a la fin.
-        public function __construct(Router &$router, View $view, CrawlerStorage &$crawlerStorage, TaskStorage &$taskStorage, SessionStorage &$sessionStorage, CrawledTextStorage $crawledTextStorage){
+        public function __construct(Router &$router, View $view){
             $this->view = $view;
-            $this->taskStorage = $taskStorage;
-            $this->crawlerStorage = $crawlerStorage;
-            $this->sessionStorage = $sessionStorage;
-            $this->crawledTextStorage = $crawledTextStorage;
+        }
+
+
+        public function apiCall($data, $method ,$endPoint){   
+            $opts = array('http' =>
+                array(
+                    'method'  => $method,
+                    'header'  => 'Content-Type: application/x-www-form-urlencoded',
+                    'content' => $data
+                )
+            );
+            $context  = stream_context_create($opts);
+            $result = file_get_contents('http://192.168.1.47:81/api/' . $endPoint, false, $context);
+            return json_decode($result,true);
         }
         
         public function showHome(){
@@ -35,37 +35,21 @@
         }
 
         public function showCrawlers(){
-            $crawlers = $this->crawlerStorage->readAll();
+            $crawlers = $this->apiCall('','GET','Crawler/readAll.php')['data'];
             $this->view->makeCrawlerListPage($crawlers);
         }
 
         public function showTasks($crawlerId){
             //Lecture de chaque tache associee a un crawler
-            //TODO: Refaire affichage pour soit appeler l'API, soit ne jamais avoir besoin de re-appeler l'API..
-
             //On pourrait faire une methode GetBySource plutot que GetById vu qu'actuellement, id et source sont egaux
-            $tasks = $this->taskStorage->readAll($crawlerId);
-            $this->view->makeTaskListPage($tasks, $this->crawlerStorage->read($crawlerId)->getSource());
+            $tasks = $this->apiCall('{"crawlerID":' . $crawlerId . '}','GET','tache/readAllByCrawlerId.php')['data'];
+            $source = $this->apiCall('{"crawlerID":' . $crawlerId . '}','GET','Crawler/read.php')['data'][0]['source'];
+            $this->view->makeTaskListPage($tasks, $source);
         }
 
         public function doTasks($taskIdArray, $crawlerId){
-            //Verifier que l'on a bien recu des id de taches.
             if (!empty($taskIdArray)) {
-
-                //TODO: Page d'insertion quand toutes les taches sont terminees : V
-                //TODO: permettre action pause/unpause + interruption de crawlers: V
-                //TODO: finir appels scripts (quora et discord. peut-etre refaire discord en python) : X
-                //      mettre cote incremental dans les crawlers : V
-                //TODO: Remplacer bdd locale par utilisation d'API sur serveurs universite : X
-                //TODO: Faire page d'extraction (prendre 1ere valeur de 'path' avant le '/') : X
-                //TODO: Faire affichage correct avec bootstrap : V
-                //TODO: faire authentification avec token : ~ (verifier avec API)
-
-                //Note: tout ce qui utilise .....Storage devrait etre remplace par un appel API.
-
-                //TODO: Si en avance : Permettre de se connecter a l'API pour transmettre une session en cours sur autre ordinateur local.
-                //Cela requirerait de mettre un dossier cache sur le serveur pour chaque session en cours
-               
+                
                 //Reprise de session locale:
                 if (file_exists('cache/local_session_info.json')) {
                     //Recuperer les donnees de la derniere session.
@@ -74,33 +58,24 @@
                     file_put_contents('cache/local_session_info.json', json_encode($local_session_data));
                 } else {
                     //Il s'agit d'une toute nouvelle session: on cree une nouvelle session dans l'API et on met les memes infos en local.
-                    //TODO: Remplacer par call API
-                    $crawlerAPI = $this->crawlerStorage->read($crawlerId);
                     
                     $local_session_data = array(
                         "sessionId" => "unknown",
                         "crawlerId" => $crawlerId,
-                        "crawlerSource" => strtolower($crawlerAPI->getSource()),
+                        "crawlerSource" => strtolower($this->apiCall('{"crawlerID":' . $crawlerId . '}','GET','Crawler/read.php')['data'][0]['source']),
                         "taskIdArray" => $taskIdArray,
                         "taskStatusArray" => array_fill(0,count($taskIdArray),2),
                         "taskLastDataArray" => array_fill(0,count($taskIdArray),'unknown'),
                         "firstDate" => time(),
                         "lastDate" => time()
                     );
-                    //TODO: Remplacer par requete (API.getNEWTOKEN)
-                    $local_session_data["sessionId"] = $this->sessionStorage->read($this->sessionStorage->create())->getToken();
-                    //$local_session_data["sessionId"] = API.getNEWTOKEN();
+                   
+                    $local_session_data["sessionId"] = $this->apiCall('','POST','session/create.php')['data'];
 
-                    //TODO: Remplacer taskLastDataArray => unknown par un appel API:
                     $tempArray = array();
                     $tempIndex = 0;
                     foreach ($taskIdArray as $taskId){
-                        //TODO: Faire appel API pour savoir quelle est la derniere donnee d'une certaine tache/
-                        //$tempArray[$tempIndex] = API.getLastDataOfTask($taskId);
-
-                        //Recherche locale.
-                        $thing = $this->crawledTextStorage->getLastKnownData($taskId);
-                        $tempArray[$tempIndex] = $thing["realid"];
+                        $tempArray[$tempIndex] = $this->apiCall('{"taskid":' . $taskId . '}','GET','donnees/getLastKnownData.php')['data']['realid'];
                         $tempIndex = $tempIndex + 1;
                     }
                     $local_session_data["taskLastDataArray"] = $tempArray;
@@ -148,52 +123,77 @@
                         break;
                 }
             
-            #Execution de taches en arriere-plan
-            $tempIndex = 0;
-            foreach ($taskIdArray as $taskId){
-                //TODO: Faire un appel a l'API pour recuperer les infos de cette tache.
-                $task = $this->taskStorage->read($taskId);
-                $entrypoint = $task->getEntry();
-                $lastDataProgression = $local_session_data["taskLastDataArray"][$tempIndex];
-                //TODO: Ameliorer la gestion des erreurs, et afficher sur l'interface lorsqu'une erreur se produit.
-                $limit = $task->getLimit();
-                //$args = array($source, $taskId, $entrypoint, $lastDataProgression, $limit);
-
-
-
-                //Si ordinateur utilisant windows:
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    //TODO: Ajouter attribut Program_Name a la table crawler au lieu de faire ce switch qui ne prends en compte que les taches definies au debut.
-                    switch ($crawlerId) {
-                        case 1:
-                            $program_name = 'python';
-                            break;
-                        case 2:
-                            $program_name = 'node';
-                            break;
-                        case 3:
-                            $program_name = 'python';
-                            break;
+                foreach ($taskIdArray as $taskId){
+                    //Creation du fichier log.
+                    $tempfile = $cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.json";
+                    if(!is_file($tempfile)){
+                        file_put_contents($tempfile, '{"status": 2}');
                     }
-                    $command = "start /b " . $program_name . ' ' .$script_path . ' ' . escapeshellarg(json_encode($source)) . ' ' .
-                    escapeshellarg($taskId) . ' ' .
-                    escapeshellarg($entrypoint) .' ' .
-                    escapeshellarg($lastDataProgression) . ' ' .
-                    escapeshellarg($limit) . ' ' .
-                    '> ' . $error_log_path . ' 2>&1';
+                    $tempfile = $cache_path.Router::PATH_DELIMITER."Tache".$taskId."Data.json";
+                    if(!is_file($tempfile)){
+                        file_put_contents($tempfile, ' ');
+                    }
+                    
+                    //
+                    $JSLogic .= "<div class='task" . $taskId . "Progress list-group-item'></div>";
+                    $JSLogic .= '
+                    <script>   
+                        taskIdArray.push(' . $taskId . ');
+                        taskIdArrayCopy.push(' . $taskId . ');
+                    </script>';
                 }
-                else{
-                    $command = $script_path . ' ' . escapeshellarg($source) . ' ' .
-                    escapeshellarg($taskId) . ' ' .
-                    escapeshellarg($entrypoint) .' ' .
-                    escapeshellarg($lastDataProgression) . ' ' .
-                    escapeshellarg($limit) . ' ' .
-                    '> ' . $error_log_path . ' 2>&1 &';
+
+                #Execution de taches en arriere-plan
+                $tempIndex = 0;
+                foreach ($taskIdArray as $taskId){
+                    $task = $this->apiCall('{"taskid":' . $taskId . '}','GET','tache/read.php')['data'];
+                    $entrypoint = $task["entrypoint"];
+                    $lastDataProgression = $local_session_data["taskLastDataArray"][$tempIndex];
+                    $limit = $task["datalimit"];
+
+                    //Si ordinateur utilisant windows:
+                    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                        switch ($crawlerId) {
+                            case 1:
+                                $program_name = 'python';
+                                break;
+                            case 2:
+                                $program_name = 'node';
+                                break;
+                            case 3:
+                                $program_name = 'python';
+                                break;
+                        }
+
+                        //WHAT THE FUCK IL SE LANCE PLUS EN ARRIRE-PLAN MICROSOOOOOOOOOOOOOOOOOOOOOOOOOOOFT
+                        $command =  'start /b "" ' . $program_name . ' "' .$script_path . '" ' . escapeshellarg($source) . ' ' .
+                        escapeshellarg($taskId) . ' ' .
+                        escapeshellarg($entrypoint) .' ' .
+                        escapeshellarg($lastDataProgression) . ' ' .
+                        escapeshellarg($limit) . ' ' .
+                        '> "' . $error_log_path . '" 2>&1';
+                    }
+                    //Si ordinateur n'utilisant pas windows, donc est probablement compatible avec notation bash standard:
+                    else{
+                        $command = $script_path . ' ' . escapeshellarg($source) . ' ' .
+                        escapeshellarg($taskId) . ' ' .
+                        escapeshellarg($entrypoint) .' ' .
+                        escapeshellarg($lastDataProgression) . ' ' .
+                        escapeshellarg($limit) . ' ' .
+                        '> ' . $error_log_path . ' 2>&1 &';
+                    }
+                    
+                    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
+                        pclose(popen($command, "r")); 
+                    }
+                    else {
+                        exec($command);  
+                    } 
+
+                    
+                   
+                    $tempIndex = $tempIndex + 1;            
                 }
-                //TODO: Remplacer error_log_path par un fichier unique a chaque tache.
-                exec($command);
-                $tempIndex = $tempIndex + 1;            
-            }
 
                 unset($tempIndex);
                 $JSLogic .= '
@@ -210,7 +210,6 @@
                         xhr.open("get", "/"+cache_path+"/Tache"+taskIdArrayCopy[i]+"Log.json", true);
                         xhr.send();
                         xhr.onload = function() {
-                            //TODO: Refaire ceci apres integration Bootstrap?
                             let taskDiv = document.getElementsByClassName("task" + taskIdArrayCopy[i] + "Progress")[0];
                             if (this.response["status"] === 2){
                                 taskDiv.innerHTML = "Preparation de la tache " + taskIdArrayCopy[i];
@@ -279,26 +278,7 @@
                 
                 </script>';
                 
-                foreach ($taskIdArray as $taskId){
-                    //Creation du fichier log.
-                    $tempfile = $cache_path.Router::PATH_DELIMITER."Tache".$taskId."Log.json";
-                    if(!is_file($tempfile)){
-                        file_put_contents($tempfile, '{"status": 2}');
-                    }
-                    $tempfile = $cache_path.Router::PATH_DELIMITER."Tache".$taskId."Data.json";
-                    if(!is_file($tempfile)){
-                        file_put_contents($tempfile, ' ');
-                    }
-                    
-                    //
-                    $JSLogic .= "<div class='task" . $taskId . "Progress list-group-item'></div>";
-                    //TODO: diviser la "colonne" en 2 pour afficher les eventuelles erreurs
-                    $JSLogic .= '
-                    <script>   
-                        taskIdArray.push(' . $taskId . ');
-                        taskIdArrayCopy.push(' . $taskId . ');
-                    </script>';
-                }
+                
                 //Closing div "taskContainer"
                 
                 $JSLogic .= "</div>";
@@ -329,19 +309,11 @@
         public function askDataInsertion(){
             $local_session_data = json_decode(file_get_contents("cache/local_session_info.json"), true);
 
-            //get id from token since we use delete($id)...
-            
-
-            //j'espere que delete fonctionne..
-            //$local_session_data["sessionId"] = $this->sessionStorage->read($this->sessionStorage->create())->getToken();
-
             $this->view->makeDataInsertionPage($local_session_data['crawlerId']);
         }
         public function insertData(){
             if (file_exists('cache/local_session_info.json')) {
                 $local_session_data = json_decode(file_get_contents("cache/local_session_info.json"), true);
-                //TODO: Verifier que la session actuelle est valide (via API)
-                //try API.validSession($local_session_data['SessionId'])
 
                 // Lecture des donnees dans le cache crawler:
                 $cache_path = "src/crawlers/crawler_". $local_session_data["crawlerSource"] ."/cache";
@@ -349,7 +321,6 @@
                 //Pour chaque tache effectuee:
                 foreach ($local_session_data["taskIdArray"] as $taskId){
                     $data = file_get_contents($cache_path . "/" ."Tache".$taskId."Data.json");            
-                    //TODO:Envoyer en format JSON a l'API.
 
                     //Note: nos crawlers vont de la donnee la plus nouvelle vers la plus ancienne
                     //1         2       3           X
@@ -366,32 +337,28 @@
                     //Inverser l'objet data:
                     //Il serait peut-etre mieux d'inverser cet array apres une execution d'un script avec succes, car cela suppose
                     //que tout les scripts vont de la donnee la plus nouvelle vers la plus ancienne, ce qui n'est pas forcement le cas..
-                    $input = array_reverse(json_decode($data), true);
-                    foreach ($input as $dataObject) {
-                        $dataEntry = new CrawledText(
-                            $dataObject->text,
-                            $dataObject->path,
-                            $dataObject->index,
-                            $dataObject->realid,
-                            $dataObject->taskid
-                        );                        
-                        $this->crawledTextStorage->create($dataEntry);
-                    }
-                    
+                    //$input = array_reverse(json_decode($data), true);
 
-                    //TODO:Si erreur.. alors redirection page erreur
+
+                    //$insertAttempt = $this->apiCall($data,'POST','donnees/createBatch.php');
+
+                    //var_dump($insertAttempt);
 
                     //Enlever fichiers locaux cache:
-                    unlink($cache_path . "/" ."Tache".$taskId."Data.json");
-                    unlink($cache_path . "/" ."Tache".$taskId."Log.json");
+                    //unlink($cache_path . "/" ."Tache".$taskId."Data.json");
+                    //unlink($cache_path . "/" ."Tache".$taskId."Log.json");
 
                     //Mise a jour attribut enddate dans bdd
-                    $tempTask = $this->taskStorage->read($taskId);
-                    $tempTask->setEndDate(time());
-                    $this->taskStorage->update($tempTask,$taskId);
+                    $tempTask = $this->apiCall('{"taskid":' . $taskId . '}','GET','tache/read.php')['data'];
+                    $tempTask["enddate"] = time();
+                    $this->apiCall(json_encode($tempTask),'PUT','tache/modifier.php');
+
                 }
                 //Effacer session a distance
                 //TODO: REMPLACER PAR APPEL API.
+                $tempTask = $this->apiCall('{"token":"' . $local_session_data["sessionId"] . '"}','DELETE','session/deleteByToken.php');
+                var_dump($tempTask);
+                die();
                 $this->sessionStorage->deleteFromToken($local_session_data["sessionId"]);
                 //Effacer egalement le fichier de session local
                 unlink('cache/local_session_info.json');
@@ -405,13 +372,12 @@
 
         }
         public function showSources(){
-            //TODO: Refaire avec connection API
-            $tasks = $this->taskStorage->readEverything();
+            $tasks = $this->apiCall('','GET','tache/readAll.php')['data'];
 
             $sourceArray = array();
             $tempIndex = 0;
             foreach ($tasks as $task){
-                $sourceArray[$tempIndex] = array($task->getCrawlerId(), $task->getId(), $task->getEntry());
+                $sourceArray[$tempIndex] = array($task['crawlerid'], $task['id'], $task['entrypoint']);
                 $tempIndex++;
             }
             unset($tempIndex);

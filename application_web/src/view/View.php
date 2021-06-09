@@ -89,8 +89,8 @@
             $this->content .= '<hr >';
             $this->content .= '<div class="list-group">';
             foreach($crawlers as $id => $crawler) {
-                $this->content .= '<a class="list-group-item" href="'.$this->router->getTaskListURL($crawler->getId()) . '">';
-                $this->content .= $crawler->getSource();
+                $this->content .= '<a class="list-group-item" href="'.$this->router->getTaskListURL($crawler['id']) . '">';
+                $this->content .= $crawler['source'];
                 $this->content .= '</a>';
             }
             $this->content .= '</div>';
@@ -105,8 +105,8 @@
             $this->content .= '<form method="post" action = "'.htmlspecialchars($_SERVER["PHP_SELF"]) . '">';
             foreach($tasks as $id => $task) {
                 $this->content .= '<div class="form-check">';
-                $this->content .= '<input class="form-check-input" type="checkbox" name = "taskIdArray[]" value="'.$task->getId().'" id = "taskCheckbox' . $task->getId() . '">';
-                $this->content .= '<label class="list-group-item" for="taskCheckbox' . $task->getId() . '"> Tache n°' . $task->getId() . ' | point d\'entree : '.$task->getEntry(). ' | limite de crawl : '.$task->getLimit(). ' donnees | derniere execution le '. date('m/d/Y h:i:s a',$task->getEndDate()) . '</label>';
+                $this->content .= '<input class="form-check-input" type="checkbox" name = "taskIdArray[]" value="'.$task['id'].'" id = "taskCheckbox' . $task['id'] . '">';
+                $this->content .= '<label class="list-group-item" for="taskCheckbox' . $task['id'] . '"> Tache n°' . $task['id'] . ' | point d\'entree : '.$task['entrypoint']. ' | limite de crawl : '.$task['datalimit']. ' donnees | derniere execution le '. date('m/d/Y h:i:s a',$task['enddate']) . '</label>';
                 $this->content .= '</div>';
             }
 

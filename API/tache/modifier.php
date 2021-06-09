@@ -23,13 +23,18 @@ if($_SERVER['REQUEST_METHOD'] == 'PUT'){
     $donnees = json_decode(file_get_contents("php://input"));
 
     // Ici on a reçu les données
-    if(!empty($donnees->text) && !empty($donnees->path) && !empty($donnees->index) && !empty($donnees->realID) ){
-    
+    if(!empty($donnees->crawlerid) && !empty($donnees->status) && !empty($donnees->entrypoint) && ($donnees->begindate > -1) && ($donnees->enddate > -1) && !empty($donnees->datalimit)){
         //On met les informations dans l'objet taches
-        $taches->text = $donnees->text;
-        $taches->path = $donnees->path;
-        $taches->index = $donnees->index;
-        $taches->realID = $donnees->realID;
+        
+        $taches->id = $donnees->id;
+        $taches->crawlerID = $donnees->crawlerid;
+        $taches->status = $donnees->status;
+        $taches->entrypoint = $donnees->entrypoint;
+        $taches->begindate = $donnees->begindate;
+        $taches->enddate = $donnees->enddate;
+        $taches->datalimit = $donnees->datalimit;
+
+        
         if($taches->modifier()){ // Ici la modification a fonctionné
             
            

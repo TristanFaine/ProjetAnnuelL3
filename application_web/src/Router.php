@@ -1,15 +1,4 @@
 <?php
-
-//Rappel de ce que fait un routeur:
-//Permet de rediriger vers certaines parties de l'application web, selon le status de l'utilisateur
-//On peut peut-etre faire un checksum d'un dossier contenant un certain crawler, pour comparer avec la BDD.
-
-//Liste d'actions possibles:
-//Acceuil, SelectCrawler, DoTasks, Insert, Export, About, 404
-
-//Utiliser un token provenant de l'API pour permettre l'authentification.
-
-
     require_once('view/View.php');
     require_once('controller/Controller.php');
 
@@ -25,7 +14,7 @@
         const PATH_DELIMITER = '/';
 
         //TODO: Enlever appels BDD quand on utilisera API a distance
-        public function main(CrawlerStorage &$crawlerStorage, TaskStorage &$taskStorage, SessionStorage &$sessionStorage, CrawledTextStorage &$crawledTextStorage){
+        public function main(){
             if(session_status() == PHP_SESSION_NONE){
                 session_name('crawlerAppSession');
                 session_start();
@@ -37,7 +26,7 @@
             $view = new View($this,$feedback);
             
             //mettre argument de BDD plus tard
-            $controller = new Controller($this, $view, $crawlerStorage, $taskStorage, $sessionStorage, $crawledTextStorage);
+            $controller = new Controller($this, $view);
             
             if(!key_exists('PATH_INFO', $_SERVER)){
                 $_SERVER['PATH_INFO'] = '';
@@ -62,6 +51,7 @@
                         break;
                     case Router::EXPORT:
                         $controller->showSources();
+                        break;
                     case Router::ABOUT:
                         $controller->showAbout();
                         break;

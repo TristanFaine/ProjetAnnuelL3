@@ -17,7 +17,9 @@ except ImportError:
 import sys, os, threading, time
 
 script_dir = os.path.dirname(__file__)
-cache_path = "cache/Tache" + sys.argv[2]
+
+cache_path = os.path.join("cache", "Tache" + sys.argv[2])
+
 rel_path = os.path.join(script_dir, cache_path)
 
 #Position des arguments envoyees par la telecommande:
@@ -49,16 +51,33 @@ pause_event = threading.Event()
 incremental_end_event = threading.Event()
 
 #Watchdog sur fichiers pause et kill
+old = 0
 class MyHandler(FileSystemEventHandler):
     def on_modified(self, event):
+        global old
+        #WHAT THE FUCK IT'S SENT TWICE ON WINDOWS BUT NOT ON UNIX BROOO
         if event.src_path.endswith("pause_file.json"):
             print("pause signal sent..")
-            if pause_event.is_set():
-                print("PAUSE OFF")
-                pause_event.clear()
-            else:
-                print("PAUSE ON")
-                pause_event.set()
+            print(event)
+
+            statbuf = os.stat(os.path.join(script_dir, "cache" , "pause_file.json"))
+            new = statbuf.st_mtime
+            #BOUCLE INFINIE H O W
+            print(str(new) + " is new")
+            print(str(old) + " is old")
+            if (new - old) > 0.5:
+                print("Received modified event - %s." % event.src_path)
+                if pause_event.is_set():
+                    print("PAUSE OFF")
+                    pause_event.clear()
+                else:
+                    print("PAUSE ON")
+                    pause_event.set()
+            old = new
+
+
+
+            
             
         elif event.src_path.endswith("kill_file.json"):
             print("kill signal sent..")

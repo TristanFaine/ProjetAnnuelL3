@@ -1,21 +1,22 @@
 # ProjetAnnuelL3
 
-## 1.  localiser des sources de dialogues sur Internet : Fait, mais peut toujours etre ameliore.
-## 2.  les récupérer, par des techniques plus ou moins automatiques (MechanicalSoup, Scrapy, Selenium) : Fait, mais peut toujours etre ameliore.
-## 3.  les organiser au sein d'une base de données. : La logique est mise en place : On utilisera des fichiers JSON pour permettre la communication de donnees.
+## Avant de réaliser ce projet, certains prototypes de crawlers ont été produits : vous pouvez les trouver dans crawlers_standalonz
 
-## 4. Unifier les resultats des crawlers/scrappers pour mise dans une BDD: GlobalId + Un objet JSON contenant : Text, Source, Path, Path_Id, Real_Id
-## 5. Mettre en place un manager de crawler (Interface PHP)
-## 6. Mettre en place la BDD.
-## 7. Verifier que tout fonctionne a distance..
-## 8. Ameliorer l'architecture de la page PHP, ajouter de nouveaux crawlers, etc.
+#Ce projet est divisé en 2 parties :
 
+## 1. Rendre disponible une API simple d'architecture REST pour insérer, modifier, effacer des données. Cela peut se faire en utilisant le format JSON par exemple.
 
-# Developpement de la telecommande:
-## 1. Finir l'architecture
-## 2. Refaire la sortie des scripts/ faire un sous-dossier cache
-## 3. Faire la liaison avec l'API
+## 2. Produire une interface permettant de piloter des crawlers, et d'interagir avec l'API, celle-ci est faite en PHP, il est donc possible d'utiliser celle-ci en local en utilisant le serveur web interne proposé : php -S localhost:8000.
+## Il est également possible d'utiliser cette interface à distance vu que c'est une application Web, par exemple en intranet.
 
 
-# Developpement de l'API
-## Je laisse mes camarades s'en occuper
+# Historique des étapes de développement :
+## 1.  Localiser des sources de dialogues sur Internet
+## 2.  Les récupérer, par des techniques plus ou moins automatiques (MechanicalSoup, Scrapy, Selenium)
+## 3.  Trouver une logique pour les organiser au sein d'une base de données, et d'avoir une interface pour exploiter différentes techniques
+## 4. Mettre en place un manager de crawler (Interface PHP)
+## 5. Mettre en place la base de données.
+## 6. Vérifier que tout fonctionne a distance.
+## 7. Améliorer l'architecture de la page PHP, ajouter de nouveaux crawlers, proposer un systéme d'administration.
+
+

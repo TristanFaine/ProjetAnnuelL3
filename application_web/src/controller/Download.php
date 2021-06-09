@@ -1,25 +1,33 @@
 <?php
 //source : https://linuxhint.com/download_file_php/
 if(isset($_GET['taskId']))
-{
+{   
 
-    //TODO: Remplacer cela par un appel API car bon quand meme..
-    require_once('../../config/localpostgresql_config.php');
-    $dsn = "pgsql:host=".$MY_HOST.";port=".$MY_PORT.";dbname=".$MY_NAME;
-    $db = new PDO($dsn, $MY_USER, $MY_PASSWORD);
+    function apiCall($data, $method ,$endPoint){   
+        $opts = array('http' =>
+            array(
+                'method'  => $method,
+                'header'  => 'Content-Type: application/x-www-form-urlencoded',
+                'content' => $data
+            )
+        );
+        $context  = stream_context_create($opts);
+        $result = file_get_contents('http://192.168.1.47:81/api/' . $endPoint, false, $context);
+        return json_decode($result,true);
+    }
 
     set_include_path('../');
-    require_once('model/CrawledTextPostgreSQL.php');
-    $crawledTextStorage = new CrawledTextPostgreSQL($db);
 
+    //remplacer par appel api
 
-    $dataList = $crawledTextStorage->readAllAssociatedData($_GET['taskId']);
+    $dataList = apiCall('{"taskid": "' . $_GET['taskId'] . '"}','GET','donnees/getAllAssociatedData.php');
     
-    //Pour illusion, faut specifier le chemin complet
+
+    //Faut specifier le chemin complet du cache (local)
     $url = "../../cache/tache" . $_GET['taskId'] . 'Export.json';
-    file_put_contents($url, json_encode($dataList));
+    file_put_contents($url, json_encode($dataList['data']));
 
-
+    
     //Effacer le cache
     clearstatcache();
 

@@ -4,9 +4,10 @@
 
 class Database{
     private $host = "localhost";
-    //private $db_name = "api";
-    //private $username = "root";
-    //private $password = "";
+    private $db_name = "testdb";
+    private $port = "5432";
+    private $username = "postgres";
+    private $password = "Ni85xlao9nb4A";
     public $connexion; //propriété public
 
 
@@ -17,9 +18,9 @@ class Database{
         $this->connexion=null;
 
         try{ // pour gérer les erreurs
-            $this->connexion= new PDO("mysql:host=" . $this->host );
-
-            $this->connexion->exec("set names utf8");
+            $dsn = "pgsql:host=".$this->host.";port=".$this->port.";dbname=".$this->db_name;
+            
+            $this->connexion = new PDO($dsn, $this->username, $this->password);
 
 
         }

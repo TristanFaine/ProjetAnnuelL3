@@ -22,23 +22,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     // On récupère les informations envoyées
     $donnees = json_decode(file_get_contents("php://input"));
 
+
     // Ici on a reçu les données
     if(!empty($donnees->source) && !empty($donnees->folderchecksum) ){
-    
+		
         //On met les informations dans l'objet crawler
         $crawler->source = $donnees->source;
-        $crawler->folderchecksum = $donnees->folderchecksum;
+        $crawler->folderchecksum = $donnees->folderchecksum;     
         if($crawler->inserer()){ // Ici la création a fonctionné
-            
-           
             http_response_code(201);  // On envoie un code 201
             echo json_encode(["message" => "L'ajout a été effectué"]);
 
         }else // si la création n'a pas fonctionné
-        
         {
-            
-           
+
             http_response_code(503);  // On envoie un code 503
             echo json_encode(["message" => "L'ajout n'a pas été effectué"]);         
         }

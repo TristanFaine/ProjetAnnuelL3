@@ -9,10 +9,11 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
 // On vérifie la méthode
 if($_SERVER['REQUEST_METHOD'] == 'PUT'){
-    // On inclut les fichiers de configuration et d'accès aux données
+    // On inclut les fichiers de configuration et d'accès aux données 
+    
     include_once '../config/Database.php';
     include_once '../models/Crawler.php';
-
+  
     // On instancie la base de données
     $database = new Database();
     $db = $database->getConnexion();
@@ -30,7 +31,9 @@ if($_SERVER['REQUEST_METHOD'] == 'PUT'){
         //On met les informations dans l'objet crawler
         $crawler->source = $donnees->source;
         $crawler->folderchecksum = $donnees->folderchecksum;
+        $crawler->id = $donnees->id;
         
+
         if($crawler->modifier()){ // Ici la modification a fonctionné
             
            

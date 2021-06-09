@@ -19,15 +19,17 @@ if($_SERVER['REQUEST_METHOD'] == 'DELETE'){
 
     // On instancie les crawlers
     $crawler = new Crawler($db);
+    
+    echo 'uwu';
+    die();
 
     // On récupère l'id du crawler
     $donnees = json_decode(file_get_contents("php://input"));
 
-    if(!empty($donnees->id)){
+    if(!empty($donnees->source)){
         $crawler->id = $donnees->id;
 
-        if($crawler->supprimer()){ // Ici la suppression a fonctionné
-            
+        if($crawler->supprimer()){ // Ici la suppression a fonctionné   
            
             http_response_code(201);  // On envoie un code 201
             echo json_encode(["message" => "La suppression a été effectuée"]);
@@ -35,7 +37,6 @@ if($_SERVER['REQUEST_METHOD'] == 'DELETE'){
         }else // si la suppression n'a pas fonctionné
         
         {
-            
            
             http_response_code(503);  // On envoie un code 503
             echo json_encode(["message" => "La suppression n'a pas été effectuée"]);         
