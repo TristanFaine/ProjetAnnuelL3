@@ -75,6 +75,7 @@
                     $tempArray = array();
                     $tempIndex = 0;
                     foreach ($taskIdArray as $taskId){
+                        //il serait preferable de récupérer un identifiant par post/chaîne plutôt que de prendre un seul identifiant global.
                         $tempArray[$tempIndex] = $this->apiCall('{"taskid":' . $taskId . '}','GET','donnees/getLastKnownData.php')['data']['realid'];
                         $tempIndex = $tempIndex + 1;
                     }
@@ -165,7 +166,6 @@
                                 break;
                         }
 
-                        //WHAT THE FUCK IL SE LANCE PLUS EN ARRIRE-PLAN MICROSOOOOOOOOOOOOOOOOOOOOOOOOOOOFT
                         $command =  'start /b "" ' . $program_name . ' "' .$script_path . '" ' . escapeshellarg($source) . ' ' .
                         escapeshellarg($taskId) . ' ' .
                         escapeshellarg($entrypoint) .' ' .
@@ -190,7 +190,6 @@
                         exec($command);  
                     } 
 
-                    
                    
                     $tempIndex = $tempIndex + 1;            
                 }
@@ -329,7 +328,7 @@
                     //1         2           3           X
                     //Oldest    2nd                     Youngest
 
-                    //Donc la BDD peut simplement choisir la donnee ayant l'id le plus eleve comme reference pour ne pas avoir de doublons.
+                    //Donc la BDD peut simplement choisir la donnee ayant l'id la plus élevée comme reference pour ne pas avoir de doublons.
 
                     //Cela suppose que le service ou le site web ne permette pas de supprimer arbitrairement des donnees.
 
@@ -340,13 +339,11 @@
                     //$input = array_reverse(json_decode($data), true);
 
 
-                    //$insertAttempt = $this->apiCall($data,'POST','donnees/createBatch.php');
-
-                    //var_dump($insertAttempt);
+                    $insertAttempt = $this->apiCall($data,'POST','donnees/createBatch.php');
 
                     //Enlever fichiers locaux cache:
-                    //unlink($cache_path . "/" ."Tache".$taskId."Data.json");
-                    //unlink($cache_path . "/" ."Tache".$taskId."Log.json");
+                    unlink($cache_path . "/" ."Tache".$taskId."Data.json");
+                    unlink($cache_path . "/" ."Tache".$taskId."Log.json");
 
                     //Mise a jour attribut enddate dans bdd
                     $tempTask = $this->apiCall('{"taskid":' . $taskId . '}','GET','tache/read.php')['data'];
@@ -355,11 +352,7 @@
 
                 }
                 //Effacer session a distance
-                //TODO: REMPLACER PAR APPEL API.
                 $tempTask = $this->apiCall('{"token":"' . $local_session_data["sessionId"] . '"}','DELETE','session/deleteByToken.php');
-                var_dump($tempTask);
-                die();
-                $this->sessionStorage->deleteFromToken($local_session_data["sessionId"]);
                 //Effacer egalement le fichier de session local
                 unlink('cache/local_session_info.json');
                 $this->view->setFeedback('Insertion reussie');

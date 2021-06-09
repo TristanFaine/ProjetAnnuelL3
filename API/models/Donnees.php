@@ -25,13 +25,21 @@ class Donnees{
     public function inserer(){ //méthode
         
         //écrire la requete d'insertion
-        $sql = "INSERT INTO " . $this->table . "(text, path, index, realid, taskid) VALUES('" .
-         $this->text . "','" . $this->path . "','" . $this->index . "','" . $this->realid . "','" . $this->taskid .")";
+        //ah mais si une requete a deja un ', alors ca cause un probleme, comment echapper le " et le '..
+        //fallait prevoir a l'avance, tant pis.
+
+
+        $this->text = str_replace("'","''",$this->text);
+
+        $sql = "INSERT INTO " . $this->table .
+        "(text,path,index,realid,taskid) VALUES ('" .
+        $this->text . "','" . $this->path . "','" . $this->index . "','" . $this->realid . "','" . $this->taskid . "')";
         // préparation à la requete (objet PDO avec ses méthodes prepare et execute)
+
         $query = $this->connexion->prepare($sql);
 
-
         // Exécution de la requête
+        //why does this fail??
         if($query->execute()){
             return true;
         }

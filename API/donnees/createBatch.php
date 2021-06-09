@@ -24,6 +24,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $data_counter = 0;
 
+    $Donnees = array_reverse($Donnees);
     foreach($Donnees as $data){
         $donnees->text = $data->text;
         $donnees->path = $data->path;
