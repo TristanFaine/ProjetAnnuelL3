@@ -1,8 +1,8 @@
 # ProjetAnnuelL3
 
-## Avant de réaliser ce projet, certains prototypes de crawlers ont été produits : vous pouvez les trouver dans crawlers_standalonz
+## Avant de réaliser ce projet, certains prototypes de crawlers ont été produits : vous pouvez les trouver dans crawlers_standalone
 
-#Ce projet est divisé en 2 parties :
+# Ce projet est divisé en 2 parties :
 
 ## 1. Rendre disponible une API simple d'architecture REST pour insérer, modifier, effacer des données. Cela peut se faire en utilisant le format JSON par exemple.
 
